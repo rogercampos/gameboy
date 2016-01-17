@@ -66,6 +66,16 @@ Instruction.define do
   opcode(0x86, 8, 1) { Registers.a.tap { |old_value| Registers.a += Registers.hl; add_alu_flags(old_value, Registers.hl) } }
   opcode(0xc6, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a += i; add_alu_flags(old_value, i) } }
 
+  opcode(0x8f, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.a + Flags.c; add_alu_flags(old_value, Registers.a + Flags.c) } }
+  opcode(0x88, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.b + Flags.c; add_alu_flags(old_value, Registers.b + Flags.c) } }
+  opcode(0x81, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.c + Flags.c; add_alu_flags(old_value, Registers.c + Flags.c) } }
+  opcode(0x82, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.d + Flags.c; add_alu_flags(old_value, Registers.d + Flags.c) } }
+  opcode(0x83, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.e + Flags.c; add_alu_flags(old_value, Registers.e + Flags.c) } }
+  opcode(0x84, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.h + Flags.c; add_alu_flags(old_value, Registers.h + Flags.c) } }
+  opcode(0x85, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.l + Flags.c; add_alu_flags(old_value, Registers.l + Flags.c) } }
+  opcode(0x86, 8, 1) { Registers.a.tap { |old_value| Registers.a += Registers.hl + Flags.c; add_alu_flags(old_value, Registers.hl + Flags.c) } }
+  opcode(0xc6, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a += i + Flags.c; add_alu_flags(old_value, i + Flags.c) } }
+
 
   # Jumps
   opcode(0xc3, 12, 3) { Registers.pc = MMU.read(Registers.pc, 2) }
