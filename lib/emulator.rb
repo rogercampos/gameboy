@@ -7,8 +7,7 @@ class Emulator
 
   def run!
     rom = Rom.new(File.binread(@rom_path))
-
-    Registers.pc = 0x100
+    RomLoader.new(rom).load!
 
     loop do
       opcode = MMU.read(Registers.pc, 1)

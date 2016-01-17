@@ -40,4 +40,4 @@ Registers.bc = 0
 Registers.de = 0
 Registers.hl = 0
 Registers.sp = 0xfffe
-Registers.pc = 0
+Registers.pc = 0x100

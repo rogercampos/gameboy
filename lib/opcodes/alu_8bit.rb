@@ -112,13 +112,13 @@ Instruction.define do
   end
 
   opcode(0x3c, 4, 1) { Registers.a += 1; inc_alu_flags(Registers.a) }
-  opcode(0x3c, 4, 1) { Registers.b += 1; inc_alu_flags(Registers.b) }
-  opcode(0x3c, 4, 1) { Registers.c += 1; inc_alu_flags(Registers.c) }
-  opcode(0x3c, 4, 1) { Registers.d += 1; inc_alu_flags(Registers.d) }
-  opcode(0x3c, 4, 1) { Registers.e += 1; inc_alu_flags(Registers.e) }
-  opcode(0x3c, 4, 1) { Registers.h += 1; inc_alu_flags(Registers.h) }
-  opcode(0x3c, 4, 1) { Registers.l += 1; inc_alu_flags(Registers.l) }
-  opcode(0x3c, 12, 1) { MMU.write(Registers.hl, MMU.read(Registers.hl, 1) + 1); inc_alu_flags(MMU.read(Registers.hl, 1)) }
+  opcode(0x04, 4, 1) { Registers.b += 1; inc_alu_flags(Registers.b) }
+  opcode(0x0c, 4, 1) { Registers.c += 1; inc_alu_flags(Registers.c) }
+  opcode(0x14, 4, 1) { Registers.d += 1; inc_alu_flags(Registers.d) }
+  opcode(0x1c, 4, 1) { Registers.e += 1; inc_alu_flags(Registers.e) }
+  opcode(0x24, 4, 1) { Registers.h += 1; inc_alu_flags(Registers.h) }
+  opcode(0x2c, 4, 1) { Registers.l += 1; inc_alu_flags(Registers.l) }
+  opcode(0x34, 12, 1) { MMU.write(Registers.hl, MMU.read(Registers.hl, 1) + 1); inc_alu_flags(MMU.read(Registers.hl, 1)) }
 
   # DEC
   def dec_alu_flags(value)

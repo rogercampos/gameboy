@@ -27,6 +27,7 @@ module MMU
     @data[address] = value % 256
   end
 
+
   private
 
   def value_at(address, bytes_to_read)
