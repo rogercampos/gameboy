@@ -39,5 +39,5 @@ Registers.af = 0
 Registers.bc = 0
 Registers.de = 0
 Registers.hl = 0
-Registers.sp = 0
+Registers.sp = 0xfffe
 Registers.pc = 0
