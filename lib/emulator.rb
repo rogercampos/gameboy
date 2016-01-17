@@ -11,26 +11,26 @@ class Emulator
     Registers.pc = 0x100
 
     loop do
-      instruction = Instruction[Registers.pc]
+      opcode = MMU.read(Registers.pc, 1)
+      extended_opcode = [0xcb, 0xed].include?(opcode)
+      opcode = (0xcb << 8) + MMU.read(Registers.pc + 1, 1) if extended_opcode
+
+      instruction = Instruction[opcode]
       Registers.pc += 1
+      Registers.pc += 1 if extended_opcode # +1 if the current opcode is 2 bytes long
+
       old_pc = Registers.pc
+
       instruction.run
-      Registers.pc += (instruction.size - 1) if old_pc == Registers.pc # Skip if the instruction has specifically set the PC.
+
+      if old_pc == Registers.pc # Skip if the instruction has specifically set the PC.
+        # Increment by the number of bytes used for the instruction so we leave PC pointing to the next instruction
+        Registers.pc += (instruction.size - 1)
+      end
 
       # sleep
       # interrupts
     end
-
-    # loop do
-    # Read opcode pointed by PC
-    # Get opcode info: Number of cycles, bytes taken by the current instruction (1, 2 or 3 bytes)
-    # Increment PC by 1. Do this before execution so any program reads PC with the expected value, since this is the default behaviour in the hardware.
-    # Tell CPU to execute the opcode.
-    # Increment PC +1 or +2 depending on the length of the instruction processed
-    # Sleep to adjust to opcode cycles
-
-    # Execute interrupts
-    # end
   end
 
 
