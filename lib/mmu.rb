@@ -24,6 +24,7 @@ module MMU
   # Writes into memory at address the value provided.
   # Value is truncated to fit in 1 byte.
   def write(address, value)
+    raise "Invalid memory access at #{address}" if address < 0 || address > 2 ** 16
     @data[address] = value % 256
   end
 
