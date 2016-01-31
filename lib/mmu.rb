@@ -3,42 +3,35 @@ module MMU
 
   @data = Array.new(2 ** 16) { 0 }
 
-  # Reads the given amount of bytes requested from memory
-  # opts[:as] controls the representation of the bytes
-  #   * unsigned: by default
-  #   * signed: readed as two's complement
-  def read(address, bytes_to_read = 1, opts = {})
-    value = value_at(address, bytes_to_read)
-    type = opts.fetch(:as, :unsigned)
-
-    case type
-      when :unsigned
-        value
-      when :signed
-        (value % 2**7) - 128
-      else
-        raise "Cannot evaluate byte as #{type}"
-    end
+  def bread(address, opts = {})
+    parse(@data[address], opts.fetch(:as, :unsigned), 1)
   end
 
-  # Writes into memory at address the value provided.
-  # Value is truncated to fit in 1 byte.
-  def write(address, value)
-    raise "Invalid memory access at #{address}" if address < 0 || address > 2 ** 16
+  def wread(address, opts = {})
+    value = @data[address] << 8 + @data[address + 1]
+    parse(value, opts.fetch(:as, :unsigned), 2)
+  end
+
+  def wwrite(address, value)
+    @data[address] = (value >> 8) % 256
+    @data[address + 1] = value % 256
+  end
+
+  def bwrite(address, value)
     @data[address] = value % 256
   end
 
 
   private
 
-  def value_at(address, bytes_to_read)
-    data = @data[address..address+bytes_to_read-1]
-    value = 0
-
-    data.reverse.each.with_index do |x, i|
-      value += (x << i * 8)
+  def parse(value, type, size_in_bytes)
+    case type
+      when :unsigned
+        value
+      when :signed
+        (value % 2** (size_in_bytes * 8 - 1)) - (2 ** (size_in_bytes * 8) / 2)
+      else
+        raise "Cannot evaluate byte as #{type}"
     end
-
-    value
   end
 end

@@ -25,7 +25,7 @@ Instruction.define do
   opcode(0xcb03, 8, 1) { Flags.c = Registers.e[7]; Registers.e = (Registers.e << 1) + Registers.e[7]; reset_flags(Registers.e) }
   opcode(0xcb04, 8, 1) { Flags.c = Registers.h[7]; Registers.h = (Registers.h << 1) + Registers.h[7]; reset_flags(Registers.h) }
   opcode(0xcb05, 8, 1) { Flags.c = Registers.l[7]; Registers.l = (Registers.l << 1) + Registers.l[7]; reset_flags(Registers.l) }
-  opcode(0xcb06, 16, 1) { foo = MMU.read(Registers.hl, 1); Flags.c = foo[7]; result = (foo << 1) + foo[7]; MMU.write(Registers.hl, result); reset_flags(result) }
+  opcode(0xcb06, 16, 1) { foo = MMU.bread(Registers.hl); Flags.c = foo[7]; result = (foo << 1) + foo[7]; MMU.bwrite(Registers.hl, result); reset_flags(result) }
 
   # RL
   opcode(0xcb17, 8, 1) { old_c = Flags.c; Flags.c = Registers.a[7]; Registers.a = (Registers.a << 1) + old_c; reset_flags(Registers.a) }
@@ -35,7 +35,7 @@ Instruction.define do
   opcode(0xcb13, 8, 1) { old_c = Flags.c; Flags.c = Registers.e[7]; Registers.e = (Registers.e << 1) + old_c; reset_flags(Registers.e) }
   opcode(0xcb14, 8, 1) { old_c = Flags.c; Flags.c = Registers.h[7]; Registers.h = (Registers.h << 1) + old_c; reset_flags(Registers.h) }
   opcode(0xcb15, 8, 1) { old_c = Flags.c; Flags.c = Registers.l[7]; Registers.l = (Registers.l << 1) + old_c; reset_flags(Registers.l) }
-  opcode(0xcb16, 16, 1) { old_c = Flags.c; foo = MMU.read(Registers.hl, 1); Flags.c = foo[7]; result = (foo << 1) + old_c; MMU.write(Registers.hl, result); reset_flags(result) }
+  opcode(0xcb16, 16, 1) { old_c = Flags.c; foo = MMU.bread(Registers.hl); Flags.c = foo[7]; result = (foo << 1) + old_c; MMU.bwrite(Registers.hl, result); reset_flags(result) }
 
   # RRC
   opcode(0xcb0f, 8, 1) { Flags.c = Registers.a[0]; Registers.a = (Registers.a >> 1) + (Registers.a[0] << 7); reset_flags(Registers.a) }
@@ -45,7 +45,7 @@ Instruction.define do
   opcode(0xcb0b, 8, 1) { Flags.c = Registers.e[0]; Registers.e = (Registers.e >> 1) + (Registers.e[0] << 7); reset_flags(Registers.e) }
   opcode(0xcb0c, 8, 1) { Flags.c = Registers.h[0]; Registers.h = (Registers.h >> 1) + (Registers.h[0] << 7); reset_flags(Registers.h) }
   opcode(0xcb0d, 8, 1) { Flags.c = Registers.l[0]; Registers.l = (Registers.l >> 1) + (Registers.l[0] << 7); reset_flags(Registers.l) }
-  opcode(0xcb0e, 16, 1) { foo = MMU.read(Registers.hl, 1); Flags.c = foo[0]; result = (foo >> 1) + (foo[0] << 7); MMU.write(Registers.hl, result); reset_flags(result) }
+  opcode(0xcb0e, 16, 1) { foo = MMU.bread(Registers.hl); Flags.c = foo[0]; result = (foo >> 1) + (foo[0] << 7); MMU.bwrite(Registers.hl, result); reset_flags(result) }
 
   # RR
   opcode(0xcb1f, 8, 1) { old_c = Flags.c; Flags.c = Registers.a[0]; Registers.a = (Registers.a >> 1) + (old_c << 7); reset_flags(Registers.a) }
@@ -55,5 +55,5 @@ Instruction.define do
   opcode(0xcb1b, 8, 1) { old_c = Flags.c; Flags.c = Registers.e[0]; Registers.e = (Registers.e >> 1) + (old_c << 7); reset_flags(Registers.e) }
   opcode(0xcb1c, 8, 1) { old_c = Flags.c; Flags.c = Registers.h[0]; Registers.h = (Registers.h >> 1) + (old_c << 7); reset_flags(Registers.h) }
   opcode(0xcb1d, 8, 1) { old_c = Flags.c; Flags.c = Registers.l[0]; Registers.l = (Registers.l >> 1) + (old_c << 7); reset_flags(Registers.l) }
-  opcode(0xcb1e, 16, 1) { old_c = Flags.c; foo = MMU.read(Registers.hl, 1); Flags.c = foo[0]; result = (foo >> 1) + (old_c << 7); MMU.write(Registers.hl, result); reset_flags(result) }
+  opcode(0xcb1e, 16, 1) { old_c = Flags.c; foo = MMU.bread(Registers.hl); Flags.c = foo[0]; result = (foo >> 1) + (old_c << 7); MMU.bwrite(Registers.hl, result); reset_flags(result) }
 end

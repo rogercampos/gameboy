@@ -10,9 +10,9 @@ class Emulator
     RomLoader.new(rom).load!
 
     loop do
-      opcode = MMU.read(Registers.pc, 1)
+      opcode = MMU.bread(Registers.pc)
       extended_opcode = [0xcb, 0xed].include?(opcode)
-      opcode = (0xcb << 8) + MMU.read(Registers.pc + 1, 1) if extended_opcode
+      opcode = (0xcb << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
 
       instruction = Instruction[opcode]
       Registers.pc += 1
@@ -30,12 +30,5 @@ class Emulator
       # sleep
       # interrupts
     end
-  end
-
-
-  private
-
-  def hex_dump(value)
-    value.to_s(16).upcase.rjust(2, "0")
   end
 end

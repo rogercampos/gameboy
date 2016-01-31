@@ -13,7 +13,7 @@ Instruction.define do
   opcode(0x39, 8, 1) { Registers.hl.tap { |old_value| Registers.hl += Registers.sp; add_alu_flags(old_value, Registers.sp) } }
 
   # ADD sp
-  opcode(0xe8, 16, 2) { i = MMU.read(Registers.pc, 1, as: :signed); Registers.sp.tap { |old_value| Registers.sp += i; Flags.z = 0; add_alu_flags(old_value, i) } }
+  opcode(0xe8, 16, 2) { i = MMU.bread(Registers.pc, as: :signed); Registers.sp.tap { |old_value| Registers.sp += i; Flags.z = 0; add_alu_flags(old_value, i) } }
 
   # INC
   opcode(0x03, 8, 1) { Registers.bc += 1 }

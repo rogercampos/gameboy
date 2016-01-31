@@ -23,8 +23,8 @@ Instruction.define do
   opcode(0x83, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.e; add_alu_flags(old_value, Registers.e) } }
   opcode(0x84, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.h; add_alu_flags(old_value, Registers.h) } }
   opcode(0x85, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.l; add_alu_flags(old_value, Registers.l) } }
-  opcode(0x86, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.read(Registers.hl, 1); add_alu_flags(old_value, MMU.read(Registers.hl, 1)) } }
-  opcode(0xc6, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a += i; add_alu_flags(old_value, i) } }
+  opcode(0x86, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.bread(Registers.hl); add_alu_flags(old_value, MMU.bread(Registers.hl)) } }
+  opcode(0xc6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i; add_alu_flags(old_value, i) } }
 
   # ADC
   opcode(0x8f, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.a + Flags.c; add_alu_flags(old_value, Registers.a + Flags.c) } }
@@ -34,8 +34,8 @@ Instruction.define do
   opcode(0x8b, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.e + Flags.c; add_alu_flags(old_value, Registers.e + Flags.c) } }
   opcode(0x8c, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.h + Flags.c; add_alu_flags(old_value, Registers.h + Flags.c) } }
   opcode(0x8d, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.l + Flags.c; add_alu_flags(old_value, Registers.l + Flags.c) } }
-  opcode(0x8e, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.read(Registers.hl, 1) + Flags.c; add_alu_flags(old_value, MMU.read(Registers.hl, 1) + Flags.c) } }
-  opcode(0xce, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a += i + Flags.c; add_alu_flags(old_value, i + Flags.c) } }
+  opcode(0x8e, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.bread(Registers.hl) + Flags.c; add_alu_flags(old_value, MMU.bread(Registers.hl) + Flags.c) } }
+  opcode(0xce, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i + Flags.c; add_alu_flags(old_value, i + Flags.c) } }
 
   # SUB
   opcode(0x97, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.a; sub_alu_flags(old_value, Registers.a) } }
@@ -45,8 +45,8 @@ Instruction.define do
   opcode(0x93, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.e; sub_alu_flags(old_value, Registers.e) } }
   opcode(0x94, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.h; sub_alu_flags(old_value, Registers.h) } }
   opcode(0x95, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.l; sub_alu_flags(old_value, Registers.l) } }
-  opcode(0x96, 8, 1) { Registers.a.tap { |old_value| Registers.a -= MMU.read(Registers.hl, 1); sub_alu_flags(old_value, MMU.read(Registers.hl, 1)) } }
-  opcode(0xd6, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a -= i; sub_alu_flags(old_value, i) } }
+  opcode(0x96, 8, 1) { Registers.a.tap { |old_value| Registers.a -= MMU.bread(Registers.hl); sub_alu_flags(old_value, MMU.bread(Registers.hl)) } }
+  opcode(0xd6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= i; sub_alu_flags(old_value, i) } }
 
   # SBC
   opcode(0x9f, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.a + Flags.c); sub_alu_flags(old_value, Registers.a + Flags.c) } }
@@ -56,8 +56,8 @@ Instruction.define do
   opcode(0x9b, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.e + Flags.c); sub_alu_flags(old_value, Registers.e + Flags.c) } }
   opcode(0x9c, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.h + Flags.c); sub_alu_flags(old_value, Registers.h + Flags.c) } }
   opcode(0x9d, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.l + Flags.c); sub_alu_flags(old_value, Registers.l + Flags.c) } }
-  opcode(0x9e, 8, 1) { Registers.a.tap { |old_value| Registers.a -= (MMU.read(Registers.hl, 1) + Flags.c); sub_alu_flags(old_value, MMU.read(Registers.hl, 1) + Flags.c) } }
-  opcode(0xde, 8, 2) { i = MMU.read(Registers.pc, 1); Registers.a.tap { |old_value| Registers.a -= (i + Flags.c); sub_alu_flags(old_value, i + Flags.c) } }
+  opcode(0x9e, 8, 1) { Registers.a.tap { |old_value| Registers.a -= (MMU.bread(Registers.hl) + Flags.c); sub_alu_flags(old_value, MMU.bread(Registers.hl) + Flags.c) } }
+  opcode(0xde, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= (i + Flags.c); sub_alu_flags(old_value, i + Flags.c) } }
 
   # AND
   opcode(0xa7, 4, 1) { Registers.a &= Registers.a; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
@@ -67,8 +67,8 @@ Instruction.define do
   opcode(0xa3, 4, 1) { Registers.a &= Registers.e; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
   opcode(0xa4, 4, 1) { Registers.a &= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
   opcode(0xa5, 4, 1) { Registers.a &= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-  opcode(0xa6, 8, 1) { Registers.a &= MMU.read(Registers.hl, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-  opcode(0xe5, 8, 2) { Registers.a &= MMU.read(Registers.pc, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+  opcode(0xa6, 8, 1) { Registers.a &= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+  opcode(0xe5, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
 
   # OR
   opcode(0xb7, 4, 1) { Registers.a |= Registers.a; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
@@ -78,8 +78,8 @@ Instruction.define do
   opcode(0xb3, 4, 1) { Registers.a |= Registers.e; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
   opcode(0xb4, 4, 1) { Registers.a |= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
   opcode(0xb5, 4, 1) { Registers.a |= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-  opcode(0xb6, 8, 1) { Registers.a |= MMU.read(Registers.hl, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-  opcode(0xf6, 8, 2) { Registers.a |= MMU.read(Registers.pc, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+  opcode(0xb6, 8, 1) { Registers.a |= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+  opcode(0xf6, 8, 2) { Registers.a |= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
 
   # XOR
   opcode(0xaf, 4, 1) { Registers.a ^= Registers.a; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
@@ -89,8 +89,8 @@ Instruction.define do
   opcode(0xab, 4, 1) { Registers.a ^= Registers.e; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
   opcode(0xac, 4, 1) { Registers.a ^= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
   opcode(0xad, 4, 1) { Registers.a ^= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-  opcode(0xae, 8, 1) { Registers.a ^= MMU.read(Registers.hl, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-  opcode(0xee, 8, 2) { Registers.a ^= MMU.read(Registers.pc, 1); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+  opcode(0xae, 8, 1) { Registers.a ^= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+  opcode(0xee, 8, 2) { Registers.a ^= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
 
   # CP
   opcode(0xbf, 4, 1) { sub_alu_flags(Registers.a, Registers.a) }
@@ -100,8 +100,8 @@ Instruction.define do
   opcode(0xbb, 4, 1) { sub_alu_flags(Registers.a, Registers.e) }
   opcode(0xbc, 4, 1) { sub_alu_flags(Registers.a, Registers.h) }
   opcode(0xbd, 4, 1) { sub_alu_flags(Registers.a, Registers.l) }
-  opcode(0xbe, 8, 1) { sub_alu_flags(Registers.a, MMU.read(Registers.hl, 1)) }
-  opcode(0xfe, 8, 2) { sub_alu_flags(Registers.a, MMU.read(Registers.pc, 1)) }
+  opcode(0xbe, 8, 1) { sub_alu_flags(Registers.a, MMU.bread(Registers.hl)) }
+  opcode(0xfe, 8, 2) { sub_alu_flags(Registers.a, MMU.bread(Registers.pc)) }
 
 
   # INC
@@ -118,7 +118,7 @@ Instruction.define do
   opcode(0x1c, 4, 1) { Registers.e += 1; inc_alu_flags(Registers.e) }
   opcode(0x24, 4, 1) { Registers.h += 1; inc_alu_flags(Registers.h) }
   opcode(0x2c, 4, 1) { Registers.l += 1; inc_alu_flags(Registers.l) }
-  opcode(0x34, 12, 1) { MMU.write(Registers.hl, MMU.read(Registers.hl, 1) + 1); inc_alu_flags(MMU.read(Registers.hl, 1)) }
+  opcode(0x34, 12, 1) { MMU.bwrite(Registers.hl, MMU.bread(Registers.hl) + 1); inc_alu_flags(MMU.bread(Registers.hl)) }
 
   # DEC
   def dec_alu_flags(value)
@@ -134,5 +134,5 @@ Instruction.define do
   opcode(0x1d, 4, 1) { Registers.e -= 1; dec_alu_flags(Registers.e) }
   opcode(0x25, 4, 1) { Registers.h -= 1; dec_alu_flags(Registers.h) }
   opcode(0x2d, 4, 1) { Registers.l -= 1; dec_alu_flags(Registers.l) }
-  opcode(0x35, 12, 1) { MMU.write(Registers.hl, MMU.read(Registers.hl, 1) - 1); dec_alu_flags(MMU.read(Registers.hl, 1)) }
+  opcode(0x35, 12, 1) { MMU.bwrite(Registers.hl, MMU.bread(Registers.hl) - 1); dec_alu_flags(MMU.bread(Registers.hl)) }
 end
