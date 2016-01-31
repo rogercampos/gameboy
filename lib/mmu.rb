@@ -8,13 +8,13 @@ module MMU
   end
 
   def wread(address, opts = {})
-    value = @data[address] << 8 + @data[address + 1]
+    value = @data[address + 1] << 8 + @data[address]
     parse(value, opts.fetch(:as, :unsigned), 2)
   end
 
   def wwrite(address, value)
-    @data[address] = (value >> 8) % 256
-    @data[address + 1] = value % 256
+    @data[address + 1] = (value >> 8) % 256
+    @data[address] = value % 256
   end
 
   def bwrite(address, value)
