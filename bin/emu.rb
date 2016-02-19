@@ -1,3 +1,3 @@
-Dir["lib/*.rb"].each { |x| require_relative "../#{x}" }
+Dir["lib/gameboy/*.rb"].each { |x| require_relative "../#{x}" }
 
-Emulator.new(File.expand_path("~/Tetris-v1.1.gb")).run!
+Gameboy::Emulator.new(File.expand_path("~/Tetris-v1.1.gb")).run!
