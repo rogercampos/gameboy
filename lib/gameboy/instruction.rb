@@ -10,7 +10,6 @@ module Gameboy
     end
 
     def run
-      puts "Running #{@opcode.to_s(16)}"
       @impl.call
     end
 
@@ -42,5 +41,5 @@ module Gameboy
     end
   end
 
-  Dir["lib/gameboy/opcodes/*.rb"].each { |x| p x; require_relative "../../#{x}" }
+  Dir["lib/gameboy/opcodes/*.rb"].each { |x| require_relative "../../#{x}" }
 end

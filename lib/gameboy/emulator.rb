@@ -27,6 +27,8 @@ module Gameboy
     end
 
     def run!
+      display = Display.new
+
       rom = Rom.new(File.binread(@rom_path))
       RomLoader.new(rom).load!
 
@@ -52,6 +54,8 @@ module Gameboy
         end
 
         # sleep
+        display.render
+
         # interrupts
       end
     end
