@@ -2,12 +2,14 @@ GEM
   remote: https://rubygems.org/
   specs:
     gosu (0.10.8)
+    minitest (5.9.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   gosu
+  minitest
 
 BUNDLED WITH
    1.12.5
