@@ -29,10 +29,10 @@ module Gameboy
 
     family(:pop_16) do
       # POP nn
-      opcode(0xf1, 12, 1) { Registers.a = MMU.bread(Registers.sp - 1); Registers.f = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xc1, 12, 1) { Registers.b = MMU.bread(Registers.sp - 1); Registers.c = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xd1, 12, 1) { Registers.d = MMU.bread(Registers.sp - 1); Registers.e = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xe1, 12, 1) { Registers.h = MMU.bread(Registers.sp - 1); Registers.l = MMU.bread(Registers.sp); Registers.sp += 2 }
+      opcode(0xf1, 12, 1) { Registers.a = MMU.bread(Registers.sp + 1); Registers.f = MMU.bread(Registers.sp); Registers.sp += 2 }
+      opcode(0xc1, 12, 1) { Registers.b = MMU.bread(Registers.sp + 1); Registers.c = MMU.bread(Registers.sp); Registers.sp += 2 }
+      opcode(0xd1, 12, 1) { Registers.d = MMU.bread(Registers.sp + 1); Registers.e = MMU.bread(Registers.sp); Registers.sp += 2 }
+      opcode(0xe1, 12, 1) { Registers.h = MMU.bread(Registers.sp + 1); Registers.l = MMU.bread(Registers.sp); Registers.sp += 2 }
     end
   end
 end

@@ -1,23 +1,17 @@
 module Gameboy
   class Instruction
-    attr_accessor :opcode, :cycles, :size, :impl, :family, :pc_modifier
+    attr_accessor :opcode, :cycles, :size, :impl, :family
 
-    def initialize(family, opcode, cycles, size, impl, pc_modifier = false)
+    def initialize(family, opcode, cycles, size, impl)
       @family = family
       @opcode = opcode
       @cycles = cycles
       @size = size
       @impl = impl
-      @pc_modifier = pc_modifier
     end
 
     def run
       @impl.call
-
-      unless @pc_modifier
-        # Increment by the number of bytes used for the instruction's arguments so we leave PC pointing to the next instruction
-        Registers.pc += (@size - 1)
-      end
     end
 
     @instructions = {}
@@ -33,9 +27,9 @@ module Gameboy
           instance_eval(&block)
         end
 
-        def opcode(address, cycles, size, pc_modifier = false, &impl)
+        def opcode(address, cycles, size, &impl)
           raise "Please include this opcode in a family first. Opcode: #{address.to_s(16)}" if @family.nil?
-          @instructions[address] = Instruction.new(@family, address, cycles, size, impl, pc_modifier)
+          @instructions[address] = Instruction.new(@family, address, cycles, size, impl)
         end
 
         def family(name)

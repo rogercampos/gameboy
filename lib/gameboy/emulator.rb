@@ -38,7 +38,7 @@ module Gameboy
         extended_opcode = [0xcb, 0xed].include?(opcode)
         opcode = (opcode << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
 
-        instruction = Instruction[opcode] || raise("Not implemented opcode #{opcode}")
+        instruction = Instruction[opcode]
         Registers.pc += 1
         Registers.pc += 1 if extended_opcode # +1 if the current opcode is 2 bytes long
 
@@ -46,7 +46,6 @@ module Gameboy
 
         # Interrupt enabler changes happens deferred
         CPU_DEFERRED_QUEUE.each { |action| CPU_DEFERRED_QUEUE.delete(action) if action.cycle! }
-
 
         # sleep
 
