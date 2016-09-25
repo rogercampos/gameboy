@@ -1,7 +1,8 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require 'gosu'
+require 'sdl2'
+require 'pry'
 
 Dir["lib/gameboy/*.rb"].each { |x| require_relative "../#{x}" }
 

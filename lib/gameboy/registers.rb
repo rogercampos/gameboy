@@ -34,12 +34,16 @@ module Gameboy
         send("#{double_register[0]}=", value >> 8)
       end
     end
+
+    def reset!
+      Registers.af = 0
+      Registers.bc = 0
+      Registers.de = 0
+      Registers.hl = 0
+      Registers.sp = 0xfffe
+      Registers.pc = 0x100
+    end
   end
 
-  Registers.af = 0
-  Registers.bc = 0
-  Registers.de = 0
-  Registers.hl = 0
-  Registers.sp = 0xfffe
-  Registers.pc = 0x100
+  Registers.reset!
 end

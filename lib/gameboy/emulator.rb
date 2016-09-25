@@ -27,36 +27,37 @@ module Gameboy
     end
 
     def run!
-      display = Display.new
-
       rom = Rom.new(File.binread(@rom_path))
       RomLoader.new(rom).load!
+
+      display = Display.new
+      i = 0
 
       loop do
         opcode = MMU.bread(Registers.pc)
         extended_opcode = [0xcb, 0xed].include?(opcode)
-        opcode = (0xcb << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
+        opcode = (opcode << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
 
-        instruction = Instruction[opcode]
+        instruction = Instruction[opcode] || raise("Not implemented opcode #{opcode}")
         Registers.pc += 1
         Registers.pc += 1 if extended_opcode # +1 if the current opcode is 2 bytes long
-
-        old_pc = Registers.pc
 
         instruction.run
 
         # Interrupt enabler changes happens deferred
-        CPU_DEFERRED_QUEUE.each { |queue| CPU_DEFERRED_QUEUE.delete(queue) if queue.cycle! }
+        CPU_DEFERRED_QUEUE.each { |action| CPU_DEFERRED_QUEUE.delete(action) if action.cycle! }
 
-        if old_pc == Registers.pc # Skip if the instruction has specifically set the PC.
-          # Increment by the number of bytes used for the instruction's arguments so we leave PC pointing to the next instruction
-          Registers.pc += (instruction.size - 1)
-        end
 
         # sleep
-        display.render
+
+        # display
+        if i % 10000 == 0
+          display.render
+        end
 
         # interrupts
+
+        i += 1
       end
     end
   end

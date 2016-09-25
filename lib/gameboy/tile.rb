@@ -5,7 +5,9 @@ module Gameboy
       @bytes = bytes
     end
 
-    # Returns an array of pixels reresenting the tile (8 pixels long)
+    # Returns an array of arrays representing the pixels of the tile.
+    # array (Y-dimension top to bottom) of arrays (X-dimension left to right)
+    # Each pixel is an integer of only 4 possible values: from 0 (black) to 3 (white).
     def to_pixels
       res = []
 
