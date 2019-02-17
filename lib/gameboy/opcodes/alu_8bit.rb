@@ -25,7 +25,7 @@ module Gameboy
       opcode(0x84, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.h; add_alu_flags(old_value, Registers.h) } }
       opcode(0x85, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.l; add_alu_flags(old_value, Registers.l) } }
       opcode(0x86, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.bread(Registers.hl); add_alu_flags(old_value, MMU.bread(Registers.hl)) } }
-      opcode(0xc6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i; add_alu_flags(old_value, i) } }
+      opcode(0xc6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i; add_alu_flags(old_value, i) }; Registers.pc += 1 }
     end
 
     family(:alu_8_adc) do
@@ -37,7 +37,7 @@ module Gameboy
       opcode(0x8c, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.h + Flags.c; add_alu_flags(old_value, Registers.h + Flags.c) } }
       opcode(0x8d, 4, 1) { Registers.a.tap { |old_value| Registers.a += Registers.l + Flags.c; add_alu_flags(old_value, Registers.l + Flags.c) } }
       opcode(0x8e, 8, 1) { Registers.a.tap { |old_value| Registers.a += MMU.bread(Registers.hl) + Flags.c; add_alu_flags(old_value, MMU.bread(Registers.hl) + Flags.c) } }
-      opcode(0xce, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i + Flags.c; add_alu_flags(old_value, i + Flags.c) } }
+      opcode(0xce, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a += i + Flags.c; add_alu_flags(old_value, i + Flags.c) }; Registers.pc += 1 }
     end
 
     family(:alu_8_sub) do
@@ -49,7 +49,7 @@ module Gameboy
       opcode(0x94, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.h; sub_alu_flags(old_value, Registers.h) } }
       opcode(0x95, 4, 1) { Registers.a.tap { |old_value| Registers.a -= Registers.l; sub_alu_flags(old_value, Registers.l) } }
       opcode(0x96, 8, 1) { Registers.a.tap { |old_value| Registers.a -= MMU.bread(Registers.hl); sub_alu_flags(old_value, MMU.bread(Registers.hl)) } }
-      opcode(0xd6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= i; sub_alu_flags(old_value, i) } }
+      opcode(0xd6, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= i; sub_alu_flags(old_value, i) }; Registers.pc += 1 }
     end
 
     family(:alu_8_sbc) do
@@ -61,7 +61,7 @@ module Gameboy
       opcode(0x9c, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.h + Flags.c); sub_alu_flags(old_value, Registers.h + Flags.c) } }
       opcode(0x9d, 4, 1) { Registers.a.tap { |old_value| Registers.a -= (Registers.l + Flags.c); sub_alu_flags(old_value, Registers.l + Flags.c) } }
       opcode(0x9e, 8, 1) { Registers.a.tap { |old_value| Registers.a -= (MMU.bread(Registers.hl) + Flags.c); sub_alu_flags(old_value, MMU.bread(Registers.hl) + Flags.c) } }
-      opcode(0xde, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= (i + Flags.c); sub_alu_flags(old_value, i + Flags.c) } }
+      opcode(0xde, 8, 2) { i = MMU.bread(Registers.pc); Registers.a.tap { |old_value| Registers.a -= (i + Flags.c); sub_alu_flags(old_value, i + Flags.c) }; Registers.pc += 1 }
     end
 
     family(:alu_8_and) do
@@ -73,7 +73,7 @@ module Gameboy
       opcode(0xa4, 4, 1) { Registers.a &= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
       opcode(0xa5, 4, 1) { Registers.a &= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
       opcode(0xa6, 8, 1) { Registers.a &= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xe5, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xe5, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_or) do
@@ -85,7 +85,7 @@ module Gameboy
       opcode(0xb4, 4, 1) { Registers.a |= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
       opcode(0xb5, 4, 1) { Registers.a |= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
       opcode(0xb6, 8, 1) { Registers.a |= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xf6, 8, 2) { Registers.a |= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xf6, 8, 2) { Registers.a |= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_xor) do
@@ -97,7 +97,7 @@ module Gameboy
       opcode(0xac, 4, 1) { Registers.a ^= Registers.h; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
       opcode(0xad, 4, 1) { Registers.a ^= Registers.l; Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
       opcode(0xae, 8, 1) { Registers.a ^= MMU.bread(Registers.hl); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xee, 8, 2) { Registers.a ^= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xee, 8, 2) { Registers.a ^= MMU.bread(Registers.pc); Flags.z = 0 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_cp) do
@@ -109,7 +109,7 @@ module Gameboy
       opcode(0xbc, 4, 1) { sub_alu_flags(Registers.a, Registers.h) }
       opcode(0xbd, 4, 1) { sub_alu_flags(Registers.a, Registers.l) }
       opcode(0xbe, 8, 1) { sub_alu_flags(Registers.a, MMU.bread(Registers.hl)) }
-      opcode(0xfe, 8, 2) { sub_alu_flags(Registers.a, MMU.bread(Registers.pc)) }
+      opcode(0xfe, 8, 2) { sub_alu_flags(Registers.a, MMU.bread(Registers.pc)); Registers.pc += 1 }
     end
 
     def inc_alu_flags(value)

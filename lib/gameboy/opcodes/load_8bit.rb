@@ -2,15 +2,15 @@ module Gameboy
   Instruction.define do
     family(:ld_8) do
       # LD nn,n
-      opcode(0x06, 8, 2) { Registers.b = MMU.bread(Registers.pc) }
-      opcode(0x0e, 8, 2) { Registers.c = MMU.bread(Registers.pc) }
-      opcode(0x16, 8, 2) { Registers.d = MMU.bread(Registers.pc) }
-      opcode(0x1e, 8, 2) { Registers.e = MMU.bread(Registers.pc) }
-      opcode(0x26, 8, 2) { Registers.h = MMU.bread(Registers.pc) }
-      opcode(0x2e, 8, 2) { Registers.l = MMU.bread(Registers.pc) }
+      opcode(0x06, 8, 2) { Registers.b = MMU.bread(Registers.pc); Registers.pc += 1 }
+      opcode(0x0e, 8, 2) { Registers.c = MMU.bread(Registers.pc); Registers.pc += 1 }
+      opcode(0x16, 8, 2) { Registers.d = MMU.bread(Registers.pc); Registers.pc += 1 }
+      opcode(0x1e, 8, 2) { Registers.e = MMU.bread(Registers.pc); Registers.pc += 1 }
+      opcode(0x26, 8, 2) { Registers.h = MMU.bread(Registers.pc); Registers.pc += 1 }
+      opcode(0x2e, 8, 2) { Registers.l = MMU.bread(Registers.pc); Registers.pc += 1 }
 
       # LD r1,r2
-      opcode(0x36, 12, 2) { MMU.bwrite(Registers.hl, MMU.bread(Registers.pc)) }
+      opcode(0x36, 12, 2) { MMU.bwrite(Registers.hl, MMU.bread(Registers.pc)); Registers.pc += 1 }
 
       opcode(0x7f, 4, 1) { Registers.a = Registers.a }
       opcode(0x78, 4, 1) { Registers.a = Registers.b }
@@ -80,8 +80,8 @@ module Gameboy
       opcode(0x0a, 8, 1) { Registers.a = MMU.bread(Registers.bc) }
       opcode(0x1a, 8, 1) { Registers.a = MMU.bread(Registers.de) }
       opcode(0x7e, 8, 1) { Registers.a = MMU.bread(Registers.hl) }
-      opcode(0xfa, 16, 3) { Registers.a = MMU.bread(MMU.wread(Registers.pc)) }
-      opcode(0x3e, 8, 3) { Registers.a = MMU.wread(Registers.pc) }
+      opcode(0xfa, 16, 3) { Registers.a = MMU.bread(MMU.wread(Registers.pc)); Registers.pc += 2 }
+      opcode(0x3e, 8, 3) { Registers.a = MMU.wread(Registers.pc); Registers.pc += 2 }
 
       # LD n, A
       opcode(0x47, 4, 1) { Registers.b = Registers.a }
@@ -95,7 +95,7 @@ module Gameboy
       opcode(0x12, 8, 1) { MMU.bwrite(Registers.de, Registers.a) }
       opcode(0x77, 8, 1) { MMU.bwrite(Registers.hl, Registers.a) }
 
-      opcode(0xea, 16, 3) { MMU.bwrite(MMU.wread(Registers.pc), Registers.a) }
+      opcode(0xea, 16, 3) { MMU.bwrite(MMU.wread(Registers.pc), Registers.a); Registers.pc += 2 }
 
       # LD A, (C)
       opcode(0xf2, 8, 1) { Registers.a = MMU.bread(0xff00 + Registers.c) }
@@ -122,10 +122,10 @@ module Gameboy
 
     family(:ldh_8) do
       # LDH (n), A
-      opcode(0xe0, 12, 2) { MMU.bwrite(0xff00 + MMU.bread(Registers.pc), Registers.a) }
+      opcode(0xe0, 12, 2) { MMU.bwrite(0xff00 + MMU.bread(Registers.pc), Registers.a); Registers.pc += 1 }
 
       # LDH A, (n)
-      opcode(0xf0, 12, 2) { Registers.a = MMU.bread(0xff00 + MMU.bread(Registers.pc)) }
+      opcode(0xf0, 12, 2) { Registers.a = MMU.bread(0xff00 + MMU.bread(Registers.pc)); Registers.pc += 1 }
     end
   end
 end

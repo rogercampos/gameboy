@@ -12,7 +12,7 @@ module Gameboy
       opcode(0x19, 8, 1) { Registers.hl.tap { |old_value| Registers.hl += Registers.de; add_alu_flags(old_value, Registers.de) } }
       opcode(0x29, 8, 1) { Registers.hl.tap { |old_value| Registers.hl += Registers.hl; add_alu_flags(old_value, Registers.hl) } }
       opcode(0x39, 8, 1) { Registers.hl.tap { |old_value| Registers.hl += Registers.sp; add_alu_flags(old_value, Registers.sp) } }
-      opcode(0xe8, 16, 2) { i = MMU.bread(Registers.pc, as: :signed); Registers.sp.tap { |old_value| Registers.sp += i; Flags.z = 0; add_alu_flags(old_value, i) } }
+      opcode(0xe8, 16, 2) { i = MMU.bread(Registers.pc, as: :signed); Registers.sp.tap { |old_value| Registers.sp += i; Flags.z = 0; add_alu_flags(old_value, i) }; Registers.pc += 1 }
     end
 
     family(:alu_16_inc) do

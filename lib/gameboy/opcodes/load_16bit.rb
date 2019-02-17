@@ -2,21 +2,21 @@ module Gameboy
   Instruction.define do
     family(:ld_16) do
       # LD n, nn
-      opcode(0x01, 12, 3) { Registers.bc = MMU.wread(Registers.pc) }
-      opcode(0x11, 12, 3) { Registers.de = MMU.wread(Registers.pc) }
-      opcode(0x21, 12, 3) { Registers.hl = MMU.wread(Registers.pc) }
-      opcode(0x31, 12, 3) { Registers.sp = MMU.wread(Registers.pc) }
+      opcode(0x01, 12, 3) { Registers.bc = MMU.wread(Registers.pc); Registers.pc += 2 }
+      opcode(0x11, 12, 3) { Registers.de = MMU.wread(Registers.pc); Registers.pc += 2 }
+      opcode(0x21, 12, 3) { Registers.hl = MMU.wread(Registers.pc); Registers.pc += 2 }
+      opcode(0x31, 12, 3) { Registers.sp = MMU.wread(Registers.pc); Registers.pc += 2 }
 
       # LD SP, HL
       opcode(0xf9, 8, 1) { Registers.sp = Registers.hl }
 
       # LD (nn), SP
-      opcode(0x08, 20, 3) { MMU.bwrite(MMU.wread(Registers.pc), Registers.sp) }
+      opcode(0x08, 20, 3) { MMU.bwrite(MMU.wread(Registers.pc), Registers.sp); Registers.pc += 2 }
     end
 
     family(:ldhl_16) do
       # LDHL SP, n
-      opcode(0xf8, 12, 2) { n = MMU.bread(Registers.pc, as: :signed); Registers.hl = n + Registers.sp }
+      opcode(0xf8, 12, 2) { n = MMU.bread(Registers.pc, as: :signed); Registers.hl = n + Registers.sp; Registers.pc += 1 }
     end
 
     family(:push_16) do
