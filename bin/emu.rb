@@ -6,4 +6,4 @@ require 'pry'
 
 Dir["lib/gameboy/*.rb"].each { |x| require_relative "../#{x}" }
 
-Gameboy::Emulator.new(File.expand_path("~/Tetris-v1.1.gb")).run!
+Gameboy::Emulator.new("resources/tetris_v1.1.gb").run!

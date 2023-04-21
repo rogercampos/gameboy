@@ -6,9 +6,8 @@ module Gameboy
     VSYNC = 59.73 # Hz
 
     def initialize
-      SDL2.init(SDL2::INIT_VIDEO)
-      @window = SDL2::Window.create "Gameboy emulator", 0, 0, 256, 256, 0
-      @renderer = @window.create_renderer(-1, 0)
+      @window = SDL2::Window.create "Gameboy emulator", SDL2::Window::POS_CENTERED, SDL2::Window::POS_CENTERED, 640, 480, SDL2::Window::Flags::SHOWN
+      @renderer = @window.create_renderer(-1, SDL2::Renderer::Flags::ACCELERATED)
     end
 
     def render
@@ -59,13 +58,13 @@ module Gameboy
     def pixel_color(value)
       case value
         when 0
-          [255, 255, 255]
+          [255, 255, 255, 255]
         when 1
-          [192, 192, 192]
+          [192, 192, 192, 255]
         when 2
-          [96, 96, 96]
+          [96, 96, 96, 255]
         when 3
-          [0, 0, 0]
+          [0, 0, 0, 255]
         else
           raise "unsupported color! #{value}"
       end

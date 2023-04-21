@@ -27,13 +27,26 @@ module Gameboy
     end
 
     def run!
+      SDL2.init(SDL2::INIT_VIDEO)
+
       rom = Rom.new(File.binread(@rom_path))
       RomLoader.new(rom).load!
 
       display = Display.new
       i = 0
 
-      loop do
+      running = true
+
+      while running
+        case event = SDL2::Event.poll
+        when SDL2::Event::Quit
+          running = false
+        when SDL2::Event::KeyDown
+          if event.sym == SDL2::Key::ESCAPE
+            running = false
+          end
+        end
+
         opcode = MMU.bread(Registers.pc)
         extended_opcode = [0xcb, 0xed].include?(opcode)
         opcode = (opcode << 8) + MMU.bread(Registers.pc + 1) if extended_opcode

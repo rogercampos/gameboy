@@ -11,7 +11,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     rake (11.2.2)
-    ruby-sdl2 (0.3.0)
+    ruby-sdl2 (0.3.5)
     slop (3.6.0)
 
 PLATFORMS
@@ -24,5 +24,8 @@ DEPENDENCIES
   rake
   ruby-sdl2
 
+RUBY VERSION
+   ruby 3.1.4p223
+
 BUNDLED WITH
-   1.12.5
+   2.4.12
