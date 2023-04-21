@@ -1,7 +1,7 @@
 require_relative 'test_helper'
 
 module Gameboy
-  class TestTwosComplement < Minitest::Test
+  class TestTwosComplement < BaseTest
     def test_data_4_bits
       assert_equal(0, TwosComplement.convert(0))
       assert_equal(7, TwosComplement.convert(0b0111, 4))

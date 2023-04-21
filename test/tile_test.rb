@@ -1,8 +1,9 @@
 require_relative 'test_helper'
 
 module Gameboy
-  class TestTile < Minitest::Test
+  class TestTile < BaseTest
     def setup
+      super
       @tile = Tile.new([
                            0x7c, 0x7c,
                            0x00, 0xc6,

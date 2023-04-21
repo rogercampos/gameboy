@@ -1,8 +1,9 @@
 require_relative 'test_helper'
 
 module Gameboy
-  class TestRegisters < Minitest::Test
+  class TestRegisters < BaseTest
     def setup
+      super
       Registers.reset!
     end
 

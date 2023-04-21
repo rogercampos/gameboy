@@ -1,8 +1,9 @@
 require_relative 'test_helper'
 
 module Gameboy
-  class TestMMU < Minitest::Test
+  class TestMMU < BaseTest
     def setup
+      super
       MMU.reset!
     end
 

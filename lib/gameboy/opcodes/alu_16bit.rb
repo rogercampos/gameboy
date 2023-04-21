@@ -3,7 +3,11 @@ module Gameboy
     def add_alu_flags(old_value, increment)
       new_value = (old_value + increment) % 2 ** 16
       Flags.n = 0
-      Flags.c = 1 if old_value > new_value
+      if increment >= 0
+        Flags.c = 1 if old_value > new_value
+      else
+        Flags.c = 1 if old_value < new_value
+      end
       Flags.h = 1 if old_value <= 0b0000_1111_1111_1111 && new_value[12] == 1
     end
 
