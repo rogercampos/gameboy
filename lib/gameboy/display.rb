@@ -51,7 +51,6 @@ module Gameboy
         @renderer.draw_point x, y
       end
 
-      puts "Rendered...."
       @renderer.present
     end
 

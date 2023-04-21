@@ -78,5 +78,24 @@ module Gameboy
     def global_checksum
       bytes[0x14e..0x14f]
     end
+
+    def debug
+      puts "Valid header checksum? #{valid_header_checksum?}"
+      puts "Entry point: #{entry_point}"
+      puts "Nintendo logo: #{nintendo_logo}"
+      puts "Title: #{title}"
+      puts "Manufacturer code: #{manufacturer_code}"
+      puts "CGB flag: #{cgb_flag}"
+      puts "New license code: #{new_license_code}"
+      puts "SGB flag: #{sgb_flag}"
+      puts "Cartridge type: #{cartridge_type}"
+      puts "ROM size: #{rom_size}"
+      puts "RAM size: #{ram_size}"
+      puts "Destination code: #{destination_code}"
+      puts "Old license code: #{old_license_code}"
+      puts "Mask ROM version number: #{mask_rom_version_number}"
+      puts "Header checksum: #{header_checksum}"
+      puts "Global checksum: #{global_checksum}"
+    end
   end
 end

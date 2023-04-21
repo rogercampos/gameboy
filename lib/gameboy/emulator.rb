@@ -22,22 +22,36 @@ module Gameboy
   CPU_DEFERRED_QUEUE = []
 
   class Emulator
-    def initialize(rom_path)
-      @rom_path = rom_path
+    def initialize(rom)
+      @rom = rom
+      @debug = false
     end
 
-    def run!
+    def run!(expected_cycles = nil)
       SDL2.init(SDL2::INIT_VIDEO)
 
-      rom = Rom.new(File.binread(@rom_path))
-      RomLoader.new(rom).load!
+      # Accept a rom object or a path to a rom file
+      @rom = Rom.new(File.binread(@rom)) unless @rom.is_a?(Rom)
+
+      if @debug
+        puts "--- ROM ---"
+        @rom.debug
+        puts "--- START COMMAND IN ROM ---"
+        p @rom.bytes[0x100..0x103].map { |x| x.to_s(16) }
+      end
+
+      RomLoader.new(@rom).load!
 
       display = Display.new
       i = 0
 
+      # Compensate first 2 opcodes, first is always 0 and second is always
+      # a jump to where the rom really starts.
+      expected_cycles += 2 if expected_cycles
+
       running = true
 
-      while running
+      while running && (expected_cycles.nil? || i < expected_cycles)
         case event = SDL2::Event.poll
         when SDL2::Event::Quit
           running = false
@@ -48,6 +62,11 @@ module Gameboy
         end
 
         opcode = MMU.bread(Registers.pc)
+
+        if @debug
+          puts "Running opcode: #{opcode.to_s(16)} | Following content in memory: #{Array.new(10) { |i| MMU.bread(Registers.pc + i).to_s(16) }.join(" ")}"
+        end
+
         extended_opcode = [0xcb, 0xed].include?(opcode)
         opcode = (opcode << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
 

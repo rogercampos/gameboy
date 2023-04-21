@@ -81,7 +81,7 @@ module Gameboy
       opcode(0x1a, 8, 1) { Registers.a = MMU.bread(Registers.de) }
       opcode(0x7e, 8, 1) { Registers.a = MMU.bread(Registers.hl) }
       opcode(0xfa, 16, 3) { Registers.a = MMU.bread(MMU.wread(Registers.pc)); Registers.pc += 2 }
-      opcode(0x3e, 8, 3) { Registers.a = MMU.wread(Registers.pc); Registers.pc += 2 }
+      opcode(0x3e, 8, 3) { Registers.a = MMU.bread(Registers.pc); Registers.pc += 1 }
 
       # LD n, A
       opcode(0x47, 4, 1) { Registers.b = Registers.a }
