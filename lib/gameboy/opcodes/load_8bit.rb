@@ -19,7 +19,6 @@ module Gameboy
       opcode(0x7b, 4, 1) { Registers.a = Registers.e }
       opcode(0x7c, 4, 1) { Registers.a = Registers.h }
       opcode(0x7d, 4, 1) { Registers.a = Registers.l }
-      opcode(0x7e, 8, 1) { Registers.a = MMU.bread(Registers.hl) }
 
       opcode(0x40, 4, 1) { Registers.b = Registers.b }
       opcode(0x41, 4, 1) { Registers.b = Registers.c }

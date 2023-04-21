@@ -9,6 +9,10 @@ class BaseTest < Minitest::Test
   def set_arg_1(value)
     Gameboy::MMU.bwrite(Gameboy::Registers.pc, value)
   end
+
+  def set_arg_1_w(value)
+    Gameboy::MMU.wwrite(Gameboy::Registers.pc, value)
+  end
 end
 
 class DummyRom
