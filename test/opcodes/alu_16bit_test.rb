@@ -83,5 +83,18 @@ module Gameboy
       instruction.run
       assert_equal 0x0000, Registers.bc
     end
+
+    def test_alu_16_add_sp
+      instruction = Instruction[0xe8]
+      Registers.sp = 0xFFFE
+      set_arg_1(0x05)
+      instruction.run
+      assert_equal 0x0003, Registers.sp
+
+      Registers.sp = 0xFFFE
+      set_arg_1(0xFE) # -2 in two's complement
+      instruction.run
+      assert_equal 0xFFFC, Registers.sp
+    end
   end
 end

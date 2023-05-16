@@ -11,7 +11,7 @@ module Gameboy
       opcode(0xf9, 8, 1) { Registers.sp = Registers.hl }
 
       # LD (nn), SP
-      opcode(0x08, 20, 3) { MMU.bwrite(MMU.wread(Registers.pc), Registers.sp); Registers.pc += 2 }
+      opcode(0x08, 20, 3) { MMU.wwrite(MMU.wread(Registers.pc), Registers.sp); Registers.pc += 2 }
     end
 
     family(:ldhl_16) do
@@ -21,18 +21,18 @@ module Gameboy
 
     family(:push_16) do
       # PUSH nn
-      opcode(0xf5, 16, 1) { MMU.bwrite(Registers.sp - 1, Registers.a); MMU.bwrite(Registers.sp - 2, Registers.f); Registers.sp -= 2 }
-      opcode(0xc5, 16, 1) { MMU.bwrite(Registers.sp - 1, Registers.b); MMU.bwrite(Registers.sp - 2, Registers.c); Registers.sp -= 2 }
-      opcode(0xd5, 16, 1) { MMU.bwrite(Registers.sp - 1, Registers.d); MMU.bwrite(Registers.sp - 2, Registers.e); Registers.sp -= 2 }
-      opcode(0xe5, 16, 1) { MMU.bwrite(Registers.sp - 1, Registers.h); MMU.bwrite(Registers.sp - 2, Registers.l); Registers.sp -= 2 }
+      opcode(0xf5, 16, 1) { Registers.sp -= 2; MMU.wwrite(Registers.sp, Registers.af) }
+      opcode(0xc5, 16, 1) { Registers.sp -= 2; MMU.wwrite(Registers.sp, Registers.bc) }
+      opcode(0xd5, 16, 1) { Registers.sp -= 2; MMU.wwrite(Registers.sp, Registers.de) }
+      opcode(0xe5, 16, 1) { Registers.sp -= 2; MMU.wwrite(Registers.sp, Registers.hl) }
     end
 
     family(:pop_16) do
       # POP nn
-      opcode(0xf1, 12, 1) { Registers.a = MMU.bread(Registers.sp + 1); Registers.f = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xc1, 12, 1) { Registers.b = MMU.bread(Registers.sp + 1); Registers.c = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xd1, 12, 1) { Registers.d = MMU.bread(Registers.sp + 1); Registers.e = MMU.bread(Registers.sp); Registers.sp += 2 }
-      opcode(0xe1, 12, 1) { Registers.h = MMU.bread(Registers.sp + 1); Registers.l = MMU.bread(Registers.sp); Registers.sp += 2 }
+      opcode(0xf1, 12, 1) { Registers.af = MMU.wread(Registers.sp); Registers.sp += 2 }
+      opcode(0xc1, 12, 1) { Registers.bc = MMU.wread(Registers.sp); Registers.sp += 2 }
+      opcode(0xd1, 12, 1) { Registers.de = MMU.wread(Registers.sp); Registers.sp += 2 }
+      opcode(0xe1, 12, 1) { Registers.hl = MMU.wread(Registers.sp); Registers.sp += 2 }
     end
   end
 end

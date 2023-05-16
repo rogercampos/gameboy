@@ -18,13 +18,13 @@ module Gameboy
       assert_equal 0x2001, Registers.pc
     end
 
-    def test_jump_if_zero
+    def test_not_jump_if_zero
       instruction = Instruction[0xc2]
       Registers.pc = 0x2000
       MMU.wwrite(0x2000, 0x2001)
       Flags.z = 1
       instruction.run
-      assert_equal 0x2000, Registers.pc
+      assert_equal 0x2002, Registers.pc
     end
 
     def test_jump_if_not_zero
@@ -45,13 +45,13 @@ module Gameboy
       assert_equal 0x2001, Registers.pc
     end
 
-    def test_jump_if_not_carry
+    def test_not_jump_if_carry_set
       instruction = Instruction[0xda]
       Registers.pc = 0x2000
       MMU.wwrite(0x2000, 0x2001)
       Flags.c = 0
       instruction.run
-      assert_equal 0x2000, Registers.pc
+      assert_equal 0x2002, Registers.pc
     end
 
     def test_jump_to_hl
@@ -83,7 +83,7 @@ module Gameboy
       MMU.bwrite(0x2000, 0x01)
       Flags.z = 1
       instruction.run
-      assert_equal 0x2000, Registers.pc
+      assert_equal 0x2001, Registers.pc
     end
 
     def test_jump_relative_if_not_zero
@@ -110,7 +110,7 @@ module Gameboy
       MMU.bwrite(0x2000, 0x01)
       Flags.c = 0
       instruction.run
-      assert_equal 0x2000, Registers.pc
+      assert_equal 0x2001, Registers.pc
     end
 
     def test_jump_relative_if_carry_negative
