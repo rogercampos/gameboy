@@ -36,7 +36,11 @@ module Gameboy
     end
 
     family(:stop) do
-      opcode(0x10, 4, 1) { raise "TODO" }
+      opcode(0x10, 4, 1) {
+        puts "Wait until button pressed"
+        gets # TODO
+        exit 0
+      }
     end
 
     family(:di) do
