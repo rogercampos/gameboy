@@ -23,7 +23,7 @@ module Gameboy
       raise "Access data out of limits #{address}" if address < 0 || address >= MMU_SIZE - 1
 
       address = handle_echo(address)
-      value = (@data[address] << 8) + @data[address + 1]
+      value = (@data[address + 1] << 8) + @data[address]
 
       parse(value, opts.fetch(:as, :unsigned), 16)
     end
@@ -32,8 +32,8 @@ module Gameboy
       raise "Access data out of limits #{address}" if address < 0 || address >= MMU_SIZE - 1
 
       address = handle_echo(address)
-      @data[address] = (value >> 8) % 256
-      @data[address + 1] = value % 256
+      @data[address + 1] = (value >> 8) % 256
+      @data[address] = value % 256
     end
 
     def reset!
@@ -45,7 +45,7 @@ module Gameboy
 
     def handle_echo(address)
       if address >= 0xc000 && address < 0xe000
-        address + 8192
+        address + 0x2000
       else
         address
       end

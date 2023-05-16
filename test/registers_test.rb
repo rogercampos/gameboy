@@ -47,11 +47,11 @@ module Gameboy
         a = double_register[0]
         b = double_register[1]
         Registers.send("#{double_register}=", 0x83be)
-        assert_equal 0x83, Registers.send(a)
-        assert_equal 0xbe, Registers.send(b)
+        assert_equal 0xbe, Registers.send(a)
+        assert_equal 0x83, Registers.send(b)
 
-        Registers.send("#{a}=", 0xaa)
-        Registers.send("#{b}=", 0x59)
+        Registers.send("#{a}=", 0x59)
+        Registers.send("#{b}=", 0xaa)
         assert_equal 0xaa59, Registers.send(double_register)
       end
     end

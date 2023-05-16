@@ -24,14 +24,14 @@ module Gameboy
 
     %w(af bc de hl).each do |double_register|
       define_method(double_register) do
-        (send(double_register[0]) << 8) + send(double_register[1])
+        (send(double_register[1]) << 8) + send(double_register[0])
       end
 
       define_method("#{double_register}=") do |value|
         value = value % (2 ** 16)
 
-        send("#{double_register[1]}=", value % (2 ** 8))
-        send("#{double_register[0]}=", value >> 8)
+        send("#{double_register[0]}=", value % (2 ** 8))
+        send("#{double_register[1]}=", value >> 8)
       end
     end
 

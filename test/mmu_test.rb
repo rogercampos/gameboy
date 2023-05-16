@@ -64,28 +64,28 @@ module Gameboy
       assert_raises(Exception) { MMU.wread MMU::MMU_SIZE + 10000, 0 }
 
       # write / read
-      MMU.wwrite 45, 13
-      assert_equal 13, MMU.wread(45)
+      MMU.wwrite 45, 0x0d
+      assert_equal 0x0d, MMU.wread(45)
 
-      MMU.wwrite 60, 65536
+      MMU.wwrite 60, 0x10000
       assert_equal 0, MMU.wread(60)
 
-      MMU.wwrite 69, 65537
+      MMU.wwrite 69, 0x10001
       assert_equal 1, MMU.wread(69)
 
-      MMU.wwrite 0, 34123
-      assert_equal 34123, MMU.wread(0)
+      MMU.wwrite 0, 0x854b
+      assert_equal 0x854b, MMU.wread(0)
 
-      MMU.wwrite MMU::MMU_SIZE - 2, 60142
-      assert_equal 60142, MMU.wread(MMU::MMU_SIZE - 2)
+      MMU.wwrite MMU::MMU_SIZE - 2, 0xeaee
+      assert_equal 0xeaee, MMU.wread(MMU::MMU_SIZE - 2)
 
       # mixed access
       MMU.wwrite 79, 0xa3f7
-      assert_equal 0xa3, MMU.bread(79)
-      assert_equal 0xf7, MMU.bread(80)
+      assert_equal 0xa3, MMU.bread(80)
+      assert_equal 0xf7, MMU.bread(79)
 
-      MMU.bwrite 93, 0xaa
-      MMU.bwrite 94, 0x73
+      MMU.bwrite 93, 0x73
+      MMU.bwrite 94, 0xaa
       assert_equal 0xaa73, MMU.wread(93)
 
       # signed
