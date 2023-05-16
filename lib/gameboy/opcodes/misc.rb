@@ -20,7 +20,7 @@ module Gameboy
     end
 
     family(:cpl) do
-      opcode(0x2f, 4, 1) { Registers.a = ~Registers.a; Flags.n = 1; Flags.h = 1 }
+      opcode(0x2f, 4, 1) { Registers.a = (~Registers.a) & 0xFF; Flags.n = 1; Flags.h = 1 }
     end
 
     family(:ccf) do
