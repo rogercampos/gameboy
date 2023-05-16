@@ -85,7 +85,7 @@ module Gameboy
       opcode(0xa4, 4, 1) { Registers.a &= Registers.h; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
       opcode(0xa5, 4, 1) { Registers.a &= Registers.l; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
       opcode(0xa6, 8, 1) { Registers.a &= MMU.bread(Registers.hl); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xe5, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0; Registers.pc += 1 }
+      opcode(0xe6, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_or) do

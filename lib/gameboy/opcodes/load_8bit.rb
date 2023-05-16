@@ -105,18 +105,18 @@ module Gameboy
 
     family(:ldd_8) do
       # LDD A, (HL)
-      opcode(0x3a, 8, 1) { Registers.a = MMU.bread(Registers.hl); Instruction[0x35].run }
+      opcode(0x3a, 8, 1) { Registers.a = MMU.bread(Registers.hl); Instruction[0x2b].run }
 
       # LDD (HL), A
-      opcode(0x32, 8, 1) { MMU.bwrite(Registers.hl, Registers.a); Instruction[0x35].run }
+      opcode(0x32, 8, 1) { MMU.bwrite(Registers.hl, Registers.a); Instruction[0x2b].run }
     end
 
     family(:ldi_8) do
       # LDI A, (HL)
-      opcode(0x2a, 8, 1) { Registers.a = MMU.bread(Registers.hl); Instruction[0x3c].run }
+      opcode(0x2a, 8, 1) { Registers.a = MMU.bread(Registers.hl); Instruction[0x23].run }
 
       # LDI (HL), A
-      opcode(0x22, 8, 1) { MMU.bwrite(Registers.hl, Registers.a); Instruction[0x3c].run }
+      opcode(0x22, 8, 1) { MMU.bwrite(Registers.hl, Registers.a); Instruction[0x23].run }
     end
 
     family(:ldh_8) do
