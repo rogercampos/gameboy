@@ -19,12 +19,23 @@ module Gameboy
     end
   end
 
+  class DebugPrinter
+    def self.print(*args)
+      out = []
+      args.each_slice(2) do |text, length|
+        out << text.ljust(length, " ")
+      end
+
+      puts out.join(" | ")
+    end
+  end
+
   CPU_DEFERRED_QUEUE = []
 
   class Emulator
     def initialize(rom)
       @rom = rom
-      @debug = false
+      @debug = true
     end
 
     def run!(expected_cycles = nil)
@@ -63,14 +74,22 @@ module Gameboy
 
         opcode = MMU.bread(Registers.pc)
 
-        if @debug
-          puts "Running opcode: #{opcode.to_s(16)} | Following content in memory: #{Array.new(10) { |i| MMU.bread(Registers.pc + i).to_s(16) }.join(" ")}"
-        end
-
         extended_opcode = [0xcb, 0xed].include?(opcode)
         opcode = (opcode << 8) + MMU.bread(Registers.pc + 1) if extended_opcode
 
         instruction = Instruction[opcode]
+        if @debug
+          DebugPrinter.print "#{instruction.family} [#{opcode.to_s(16)}]", 16,
+                             "MEM [#{Array.new(6) { |i| MMU.bread(Registers.pc + i).to_s(16) if Registers.pc + i <= 65535 }.compact.join(" ")}] ", 25,
+                             "STACK [#{Array.new(4) {|i| MMU.wread(Registers.sp + i*2).to_s(16) if Registers.sp + i*2 <= 65535 }.compact.join(" ") }]", 28,
+                             "FLAGS #{Flags.debug}", 30,
+                             "REG #{Registers.debug}", 80
+
+          if Registers.pc == 65535
+            exit 1
+          end
+        end
+
         Registers.pc += 1
         Registers.pc += 1 if extended_opcode # +1 if the current opcode is 2 bytes long
 
@@ -82,7 +101,7 @@ module Gameboy
         # sleep
 
         # display
-        if i % 10000 == 0
+        if i % 100 == 0
           display.render
         end
 

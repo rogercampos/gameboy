@@ -1,3 +1,5 @@
+require 'irb'
+
 require 'rubygems'
 require 'bundler/setup'
 
@@ -6,5 +8,4 @@ require 'pry'
 
 Dir["lib/gameboy/*.rb"].each { |x| require_relative "../#{x}" }
 
-Gameboy::Emulator.new("resources/tetris_v1.1.gb").run!(2000 )
-# Gameboy::Emulator.new("resources/tetris_v1.1.gb").run!
+IRB.start

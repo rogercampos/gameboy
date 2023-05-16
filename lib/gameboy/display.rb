@@ -11,6 +11,37 @@ module Gameboy
     end
 
     def render
+      render_debug
+      # render_tile_map
+    end
+
+    def render_debug
+      tiles = []
+
+      256.times do |i|
+        tile_address = 0x8000 + i * 16
+        tile_data = 16.times.map { |q| MMU.bread(tile_address + q) }
+        tiles << Tile.new(tile_data)
+      end
+
+      tiles.each.with_index do |tile, tile_index|
+        x = (tile_index % 16) * 8
+        y = (tile_index / 16) * 8
+
+        tile_pixels = tile.to_pixels
+
+        tile_pixels.each.with_index do |row, y_index|
+          row.each.with_index do |pixel, x_index|
+            @renderer.draw_color = pixel_color pixel
+            @renderer.draw_point x + x_index, y + y_index
+          end
+        end
+      end
+
+      @renderer.present
+    end
+
+    def render_tile_map
       # Clear screen
       # Redraw screen
       # Draw tile map #0

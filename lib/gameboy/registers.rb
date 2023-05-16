@@ -51,6 +51,10 @@ module Gameboy
       Registers.sp = 0xfffe
       Registers.pc = 0x100
     end
+
+    def debug
+      "A: #{a.to_s(16)}; F: #{f.to_s(16)}; B: #{b.to_s(16)}; C: #{c.to_s(16)}; D: #{d.to_s(16)}; E: #{e.to_s(16)}; H: #{h.to_s(16)}; L: #{l.to_s(16)}; SP: #{sp.to_s(16)}; PC: #{pc.to_s(16)}"
+    end
   end
 
   Registers.reset!

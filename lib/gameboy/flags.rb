@@ -39,7 +39,7 @@ module Gameboy
     end
 
     def debug
-      puts "Z: #{z}; N: #{n}; H: #{h}; C: #{c}"
+      "Z: #{z}; N: #{n}; H: #{h}; C: #{c}"
     end
   end
 end
