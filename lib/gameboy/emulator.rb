@@ -28,17 +28,21 @@ module Gameboy
 
       puts out.join(" | ")
     end
+
+    def self.format_byte(value)
+      value.to_s(16).rjust(2, "0")
+    end
   end
 
   CPU_DEFERRED_QUEUE = []
 
   class Emulator
-    def initialize(rom)
+    def initialize(rom, debug: false)
       @rom = rom
-      @debug = true
+      @debug = debug
     end
 
-    def run!(expected_cycles = nil)
+    def run!(expected_cycles = nil, start_at_pc: 0x100)
       SDL2.init(SDL2::INIT_VIDEO)
 
       # Accept a rom object or a path to a rom file
@@ -55,6 +59,7 @@ module Gameboy
 
       display = Display.new
       i = 0
+      total_cycles = 0
 
       # Compensate first 2 opcodes, first is always 0 and second is always
       # a jump to where the rom really starts.
@@ -84,10 +89,6 @@ module Gameboy
                              "STACK [#{Array.new(4) {|i| MMU.wread(Registers.sp + i*2).to_s(16) if Registers.sp + i*2 <= 65535 }.compact.join(" ") }]", 28,
                              "FLAGS #{Flags.debug}", 30,
                              "REG #{Registers.debug}", 80
-
-          if Registers.pc == 65535
-            exit 1
-          end
         end
 
         Registers.pc += 1
@@ -95,15 +96,22 @@ module Gameboy
 
         instruction.run
 
+        total_cycles += instruction.cycles
+
         # Interrupt enabler changes happens deferred
         CPU_DEFERRED_QUEUE.each { |action| CPU_DEFERRED_QUEUE.delete(action) if action.cycle! }
 
         # sleep
 
+        rate = total_cycles > 40_000_000 ? 100 : 10000
         # display
-        if i % 100 == 0
+        if i % rate == 0
           display.render
         end
+
+        # if (i % 5000 == 0) && @debug
+        #   print "\r#{(total_cycles / 1000000.0).round(2)} M total cycles"
+        # end
 
         # interrupts
 

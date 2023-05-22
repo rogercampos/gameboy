@@ -13,6 +13,7 @@ module Gameboy
     def test_simple_call
       instruction = Instruction[0xcd]
       Registers.pc = 0x2000
+      Registers.sp = 0xcfff
       set_arg_1_w(0x1212)
       instruction.run
       assert_equal 0x1212, Registers.pc
