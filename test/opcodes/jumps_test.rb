@@ -64,9 +64,9 @@ module Gameboy
     def test_jump_relative
       instruction = Instruction[0x18]
       Registers.pc = 0x2000
-      MMU.bwrite(0x2000, 0x01)
+      MMU.bwrite(0x2000, 0x05)
       instruction.run
-      assert_equal 0x2001, Registers.pc
+      assert_equal 0x2006, Registers.pc
     end
 
     def test_jump_relative_negative
@@ -74,7 +74,7 @@ module Gameboy
       Registers.pc = 0x2000
       MMU.bwrite(0x2000, 0xff)
       instruction.run
-      assert_equal 0x1fff, Registers.pc
+      assert_equal 0x2000, Registers.pc
     end
 
     def test_jump_relative_if_zero
@@ -92,7 +92,7 @@ module Gameboy
       MMU.bwrite(0x2000, 0x01)
       Flags.z = 0
       instruction.run
-      assert_equal 0x2001, Registers.pc
+      assert_equal 0x2002, Registers.pc
     end
 
     def test_jump_relative_if_carry
@@ -101,7 +101,7 @@ module Gameboy
       MMU.bwrite(0x2000, 0x01)
       Flags.c = 1
       instruction.run
-      assert_equal 0x2001, Registers.pc
+      assert_equal 0x2002, Registers.pc
     end
 
     def test_jump_relative_if_not_carry
@@ -119,7 +119,7 @@ module Gameboy
       MMU.bwrite(0x2000, 0xff)
       Flags.c = 1
       instruction.run
-      assert_equal 0x1fff, Registers.pc
+      assert_equal 0x2000, Registers.pc
     end
   end
 end

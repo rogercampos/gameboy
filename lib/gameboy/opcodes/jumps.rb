@@ -10,12 +10,12 @@ module Gameboy
 
       opcode(0xe9, 4, 1) { Registers.pc = Registers.hl }
 
-      opcode(0x18, 8, 2) { Registers.pc += MMU.bread(Registers.pc, as: :signed) }
+      opcode(0x18, 8, 2) { Registers.pc += (MMU.bread(Registers.pc, as: :signed) + 1) }
 
-      opcode(0x20, 8, 2) { Flags.z == 0 ? Registers.pc += MMU.bread(Registers.pc, as: :signed) : Registers.pc += 1 }
-      opcode(0x28, 8, 2) { Flags.z == 1 ? Registers.pc += MMU.bread(Registers.pc, as: :signed) : Registers.pc += 1 }
-      opcode(0x30, 8, 2) { Flags.c == 0 ? Registers.pc += MMU.bread(Registers.pc, as: :signed) : Registers.pc += 1 }
-      opcode(0x38, 8, 2) { Flags.c == 1 ? Registers.pc += MMU.bread(Registers.pc, as: :signed) : Registers.pc += 1 }
+      opcode(0x20, 8, 2) { Flags.z == 0 ? Registers.pc += (MMU.bread(Registers.pc, as: :signed) + 1) : Registers.pc += 1 }
+      opcode(0x28, 8, 2) { Flags.z == 1 ? Registers.pc += (MMU.bread(Registers.pc, as: :signed) + 1) : Registers.pc += 1 }
+      opcode(0x30, 8, 2) { Flags.c == 0 ? Registers.pc += (MMU.bread(Registers.pc, as: :signed) + 1) : Registers.pc += 1 }
+      opcode(0x38, 8, 2) { Flags.c == 1 ? Registers.pc += (MMU.bread(Registers.pc, as: :signed) + 1) : Registers.pc += 1 }
     end
   end
 end
