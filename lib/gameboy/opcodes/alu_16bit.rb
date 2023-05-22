@@ -4,11 +4,11 @@ module Gameboy
       new_value = (old_value + increment) % 2 ** 16
       Flags.n = 0
       if increment >= 0
-        Flags.c = 1 if old_value > new_value
+        old_value > new_value ? Flags.c = 1 : Flags.c = 0
       else
-        Flags.c = 1 if old_value < new_value
+        old_value < new_value ? Flags.c = 1 : Flags.c = 0
       end
-      Flags.h = 1 if old_value <= 0b0000_1111_1111_1111 && new_value[12] == 1
+      (old_value <= 0b0000_1111_1111_1111 && new_value[12] == 1) ? Flags.h = 1 : Flags.h = 0
     end
 
     family(:alu_16_add) do

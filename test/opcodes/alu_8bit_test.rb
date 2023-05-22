@@ -76,7 +76,7 @@ module Gameboy
       assert_equal 0x1f, Registers.a
       assert_equal 0, Flags.z
       assert_equal 0, Flags.n
-      assert_equal 1, Flags.c
+      assert_equal 0, Flags.c
       assert_equal 0, Flags.h
     end
 

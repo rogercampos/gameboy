@@ -1,7 +1,7 @@
 module Gameboy
   Instruction.define do
     def reset_flags(value)
-      Flags.z = 1 if value == 0
+      value == 0 ? Flags.z = 1 : Flags.z = 0
       Flags.n = 0
       Flags.h = 0
     end

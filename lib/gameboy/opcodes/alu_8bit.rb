@@ -2,18 +2,18 @@ module Gameboy
   Instruction.define do
     def add_alu_flags(old_value, increment)
       new_value = (old_value + increment) % 2 ** 8
-      Flags.z = 1 if new_value == 0
+      new_value == 0 ? Flags.z = 1 : Flags.z = 0
       Flags.n = 0
-      Flags.c = 1 if old_value > new_value
-      Flags.h = 1 if ((old_value ^ increment ^ new_value) & 0x10) != 0
+      old_value > new_value ? Flags.c = 1 : Flags.c = 0
+      ((old_value ^ increment ^ new_value) & 0x10) != 0 ? Flags.h = 1 : Flags.h = 0
     end
 
     def sub_alu_flags(old_value, decrement)
       new_value = (old_value - decrement) % 2 ** 8
-      Flags.z = 1 if new_value == 0
+      new_value == 0 ? Flags.z = 1 : Flags.z = 0
       Flags.n = 1
-      Flags.c = 1 if (old_value - decrement) < 0
-      Flags.h = 1 if ((old_value ^ decrement ^ new_value) & 0x10) != 0
+      (old_value - decrement) < 0 ? Flags.c = 1 : Flags.c = 0
+      ((old_value ^ decrement ^ new_value) & 0x10) != 0 ? Flags.h = 1 : Flags.h = 0
     end
 
     def subtract(old_value, decrement)
@@ -26,6 +26,10 @@ module Gameboy
       new_value = (old_value + increment) % 2 ** 8
       add_alu_flags(old_value, increment)
       new_value
+    end
+
+    def set_zero_flag(value)
+      value == 0 ? Flags.z = 1 : Flags.z = 0
     end
 
     family(:alu_8_add) do
@@ -77,39 +81,39 @@ module Gameboy
     end
 
     family(:alu_8_and) do
-      opcode(0xa7, 4, 1) { Registers.a &= Registers.a; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa0, 4, 1) { Registers.a &= Registers.b; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa1, 4, 1) { Registers.a &= Registers.c; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa2, 4, 1) { Registers.a &= Registers.d; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa3, 4, 1) { Registers.a &= Registers.e; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa4, 4, 1) { Registers.a &= Registers.h; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa5, 4, 1) { Registers.a &= Registers.l; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xa6, 8, 1) { Registers.a &= MMU.bread(Registers.hl); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0 }
-      opcode(0xe6, 8, 2) { Registers.a &= MMU.bread(Registers.pc); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 1; Flags.c = 0; Registers.pc += 1 }
+      opcode(0xa7, 4, 1) { Registers.a &= Registers.a; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa0, 4, 1) { Registers.a &= Registers.b; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa1, 4, 1) { Registers.a &= Registers.c; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa2, 4, 1) { Registers.a &= Registers.d; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa3, 4, 1) { Registers.a &= Registers.e; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa4, 4, 1) { Registers.a &= Registers.h; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa5, 4, 1) { Registers.a &= Registers.l; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xa6, 8, 1) { Registers.a &= MMU.bread(Registers.hl); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0 }
+      opcode(0xe6, 8, 2) { Registers.a &= MMU.bread(Registers.pc); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 1; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_or) do
-      opcode(0xb7, 4, 1) { Registers.a |= Registers.a; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb0, 4, 1) { Registers.a |= Registers.b; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb1, 4, 1) { Registers.a |= Registers.c; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb2, 4, 1) { Registers.a |= Registers.d; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb3, 4, 1) { Registers.a |= Registers.e; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb4, 4, 1) { Registers.a |= Registers.h; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb5, 4, 1) { Registers.a |= Registers.l; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xb6, 8, 1) { Registers.a |= MMU.bread(Registers.hl); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xf6, 8, 2) { Registers.a |= MMU.bread(Registers.pc); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
+      opcode(0xb7, 4, 1) { Registers.a |= Registers.a; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb0, 4, 1) { Registers.a |= Registers.b; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb1, 4, 1) { Registers.a |= Registers.c; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb2, 4, 1) { Registers.a |= Registers.d; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb3, 4, 1) { Registers.a |= Registers.e; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb4, 4, 1) { Registers.a |= Registers.h; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb5, 4, 1) { Registers.a |= Registers.l; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xb6, 8, 1) { Registers.a |= MMU.bread(Registers.hl); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xf6, 8, 2) { Registers.a |= MMU.bread(Registers.pc); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_xor) do
-      opcode(0xaf, 4, 1) { Registers.a ^= Registers.a; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xa8, 4, 1) { Registers.a ^= Registers.b; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xa9, 4, 1) { Registers.a ^= Registers.c; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xaa, 4, 1) { Registers.a ^= Registers.d; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xab, 4, 1) { Registers.a ^= Registers.e; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xac, 4, 1) { Registers.a ^= Registers.h; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xad, 4, 1) { Registers.a ^= Registers.l; Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xae, 8, 1) { Registers.a ^= MMU.bread(Registers.hl); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0 }
-      opcode(0xee, 8, 2) { Registers.a ^= MMU.bread(Registers.pc); Flags.z = 1 if Registers.a == 0; Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
+      opcode(0xaf, 4, 1) { Registers.a ^= Registers.a; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xa8, 4, 1) { Registers.a ^= Registers.b; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xa9, 4, 1) { Registers.a ^= Registers.c; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xaa, 4, 1) { Registers.a ^= Registers.d; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xab, 4, 1) { Registers.a ^= Registers.e; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xac, 4, 1) { Registers.a ^= Registers.h; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xad, 4, 1) { Registers.a ^= Registers.l; set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xae, 8, 1) { Registers.a ^= MMU.bread(Registers.hl); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0 }
+      opcode(0xee, 8, 2) { Registers.a ^= MMU.bread(Registers.pc); set_zero_flag(Registers.a); Flags.n = 0; Flags.h = 0; Flags.c = 0; Registers.pc += 1 }
     end
 
     family(:alu_8_cp) do
@@ -125,9 +129,9 @@ module Gameboy
     end
 
     def inc_alu_flags(old_value, new_value)
-      Flags.z = 1 if new_value == 0
+      new_value == 0 ? Flags.z = 1 : Flags.z = 0
       Flags.n = 0
-      Flags.h = 1 if ((old_value ^ 1 ^ new_value) & 0x10) != 0
+      ((old_value ^ 1 ^ new_value) & 0x10) != 0 ? Flags.h = 1 : Flags.h = 0
     end
 
     family(:alu_8_inc) do
@@ -142,9 +146,9 @@ module Gameboy
     end
 
     def dec_alu_flags(old_value, new_value)
-      Flags.z = 1 if new_value == 0
+      new_value == 0 ? Flags.z = 1 : Flags.z = 0
       Flags.n = 1
-      Flags.h = 1 if ((old_value ^ 1 ^ new_value) & 0x10) != 0
+      ((old_value ^ 1 ^ new_value) & 0x10) != 0 ? Flags.h = 1 : Flags.h = 0
     end
 
     family(:alu_8_dec) do
