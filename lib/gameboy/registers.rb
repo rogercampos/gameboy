@@ -36,18 +36,14 @@ module Gameboy
     end
 
     def reset!
-      Registers.a = 0
-      Registers.f = 0
+      Registers.a = 1
+      Registers.f = 0xb0
       Registers.b = 0
-      Registers.c = 0
+      Registers.c = 0xd
       Registers.d = 0
-      Registers.e = 0
-      Registers.h = 0
-      Registers.l = 0
-      Registers.af = 0
-      Registers.bc = 0
-      Registers.de = 0
-      Registers.hl = 0
+      Registers.e = 0xd8
+      Registers.h = 1
+      Registers.l = 0x4d
       Registers.sp = 0xfffe
       Registers.pc = 0x100
     end
