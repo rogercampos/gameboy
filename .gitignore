@@ -1,1 +1,28 @@
-.idea
+# Crystal
+/lib/
+/.shards/
+*.dwarf
+/docs/
+
+# Build artifacts
+/gameboy
+/debug_emulator
+/trace_startup
+/check_*
+/test_*
+/simple_*
+/diagnose_*
+/benchmark_*
+*.o
+*.a
+
+# IDE
+/.idea/
+
+# Logs
+gameboy-logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

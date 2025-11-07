@@ -1,29 +1,84 @@
-## Status
+# Game Boy Emulator
 
-This emulator is still in a non functional state. CPU instruction set should be complete and correct, but
-video system and i/o, among other subsystems, are pending to be complete. This is the list of next todo things:
+A Game Boy emulator written in Crystal, capable of running simple Game Boy ROMs like Tetris.
 
-- Display: The first thing to do to be able to see something in the screen is implementing the LCD in-memory 
-  registers. The display is supposed to work independently, drawing the screen line by line based on the memory 
-  VRAM contents, and while doing so also updating specific memory regions that represent virtual registers 
-  (like 0xff40). This must be done correctly because the program relies on those values as a way to synchronize
-  status. This goes in hand with having a way to correctly simulate the timing of the hardware.
-- Video: Sprites and background / foreground must be supported. Besides virtual registers to control scroll 
-  positioning.
-- Performance and cycle count: The emulator needs to run at the same speed as the original gameboy. For this, 
-  we need to ensure a certain number of cycles executed per second. We have the cycle count per each cpu 
-  instruction, but we miss the cycles of memory and register access, which is dynamic.
-- Interrupts: The CPU must be able to handle interrupts. This is a very important part of the gameboy, as it 
-  is the way the hardware communicates with the CPU. The CPU must be able to handle interrupts, and the 
-  hardware must be able to trigger them.
-- I/O: Virtual registers for i/o must be implemented and matched with SDL events.
+## Requirements
 
+- Crystal (latest version)
+- SDL2 library
+
+## Building
+
+```bash
+crystal build src/main.cr -o gameboy --release
+```
+
+## Running
+
+```bash
+./gameboy path/to/rom.gb
+```
+
+Example with included Tetris ROM:
+```bash
+./gameboy resources/tetris_v1.1.gb
+```
+
+## Current State
+
+This emulator implements the core Game Boy components:
+- **CPU**: Full Z80-like instruction set with proper timing
+- **Memory Management Unit (MMU)**: Complete memory mapping
+- **Picture Processing Unit (PPU)**: Background and sprite rendering
+- **Timer**: Divider and timer registers with interrupts
+- **Joypad**: Input handling
+- **Interrupts**: VBlank, LCD STAT, Timer, and Joypad interrupts
+- **Display**: SDL-based rendering
+
+**Tested with**: Tetris v1.1
+
+## Known Limitations
+
+- No sound (APU not implemented)
+- No save state support
+- Limited cartridge support (MBC1/MBC3/MBC5 not fully implemented)
+- No Game Boy Color support
+- Frame timing may not be perfectly accurate
+
+## Logical Next Steps
+
+### Short Term
+1. **Remove remaining test files**: Clean up `src/test_*.cr` and `src/benchmark_*.cr` files
+2. **Frame rate limiting**: Implement proper timing to run at 59.7 FPS
+3. **Performance profiling**: Identify and optimize CPU hotspots
+4. **Test with more ROMs**: Validate with games beyond Tetris
+
+### Medium Term
+5. **Memory Bank Controllers**: Implement MBC1, MBC3, and MBC5 for broader ROM compatibility
+6. **Save state support**: Serialize and restore emulator state
+7. **Audio Processing Unit (APU)**: Implement all 4 sound channels
+8. **Debugger interface**: Add breakpoints, memory viewer, and step execution
+9. **Input mapping**: Allow keyboard remapping
+
+### Long Term
+10. **Game Boy Color support**: Extend PPU for color palettes and double-speed mode
+11. **Link cable emulation**: Support for multiplayer games
+12. **Enhanced PPU accuracy**: Fix any remaining rendering glitches
+13. **Automated testing**: ROM test suite integration (Blargg's tests, etc.)
+14. **Cross-platform builds**: Package for macOS, Linux, and Windows
+
+## Architecture
+
+- `src/main.cr` - Entry point
+- `src/emulator.cr` - Main emulation loop
+- `src/cpu.cr` / `src/instructions.cr` - CPU implementation
+- `src/ppu.cr` - Graphics rendering
+- `src/mmu.cr` - Memory management
+- `src/timer.cr` - Timer and divider registers
+- `src/joypad.cr` - Input handling
+- `src/display.cr` - SDL bindings and display
 
 ## Resources
 
-- https://realboyemulator.files.wordpress.com/2013/01/gbcpuman.pdf
-- http://gbdev.gg8.se/files/docs/mirrors/pandocs.html
-- http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
-- http://imrannazar.com/content/files/jsgb.z80.js
-- Z80 CPU user manual (UM0080.pdf): http://www.zilog.com/appnotes_download.php?FromPage=DirectLink&dn=UM0080&ft=User%20Manual&f=YUhSMGNEb3ZMM2QzZHk1NmFXeHZaeTVqYjIwdlpHOWpjeTk2T0RBdlZVMHdNRGd3TG5Ca1pnPT0=
-- [GBEmu](https://github.com/DanB91/GBEmu) useful in debug mode to verify this implementation of the CPU
+- [Pan Docs](https://gbdev.io/pandocs/) - Comprehensive Game Boy technical reference
+- `resources/gbcpuman.pdf` - Game Boy CPU manual
