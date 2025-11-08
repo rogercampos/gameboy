@@ -6,6 +6,7 @@ require "./timer"
 require "./interrupt"
 require "./ppu"
 require "./joypad"
+require "./apu"
 require "./rom"
 require "./rom_loader"
 require "./display"
@@ -95,6 +96,7 @@ module Gameboy
       Timer.reset!
       Joypad.reset!
       PPU.reset!
+      APU.reset!
       IME.reset!
 
       puts "\nStarting emulation..."
@@ -105,6 +107,8 @@ module Gameboy
       frame_cycles = 0
       frame_count = 0_i64
       last_fps_time = Time.monotonic
+      frame_time_target = Time::Span.new(nanoseconds: (1_000_000_000 / TARGET_FPS).to_i64)
+      last_frame_time = Time.monotonic
 
       # Main emulation loop
       running = true
@@ -187,8 +191,16 @@ module Gameboy
             # Check if window was closed
             running = false unless display.running?
 
-            # Frame timing - limit to ~60 FPS
-            # TODO: More precise timing
+            # Frame timing - limit to 59.73 FPS
+            current_frame_time = Time.monotonic
+            frame_duration = current_frame_time - last_frame_time
+            sleep_time = frame_time_target - frame_duration
+
+            if sleep_time > Time::Span.zero
+              sleep(sleep_time)
+            end
+
+            last_frame_time = Time.monotonic
           end
 
           # FPS counter (every second)
