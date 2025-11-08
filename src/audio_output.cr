@@ -27,7 +27,7 @@ module Gameboy
       if LibSDL.init(LibSDL::INIT_AUDIO) < 0
         puts "Failed to initialize SDL audio"
         @enabled = false
-        @audio_device = 0_u32
+        @audio_device = uninitialized LibSDL::AudioDeviceID
         return
       end
 

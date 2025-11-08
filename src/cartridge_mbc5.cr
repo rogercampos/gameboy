@@ -19,7 +19,7 @@ module Gameboy
         rom_address = (bank * 0x4000) + (address - 0x4000)
         read_rom_byte(rom_address)
       else
-        0xFF
+        0xFFu8
       end
     end
 
@@ -41,15 +41,15 @@ module Gameboy
     end
 
     def read_ram(address : Int32) : UInt8
-      return 0xFF unless @ram_enabled
-      return 0xFF if @external_ram.size == 0
+      return 0xFFu8 unless @ram_enabled
+      return 0xFFu8 if @external_ram.size == 0
 
       ram_address = (@ram_bank.to_i32 * 0x2000) + (address - 0xA000)
 
       if ram_address >= 0 && ram_address < @external_ram.size
         @external_ram[ram_address]
       else
-        0xFF
+        0xFFu8
       end
     end
 
@@ -68,7 +68,7 @@ module Gameboy
       if address >= 0 && address < @rom.bytes.size
         @rom.bytes[address]
       else
-        0xFF
+        0xFFu8
       end
     end
   end

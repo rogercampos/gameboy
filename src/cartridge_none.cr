@@ -8,7 +8,7 @@ module Gameboy
       if address < @rom.bytes.size
         @rom.bytes[address]
       else
-        0xFF
+        0xFFu8
       end
     end
 
@@ -22,7 +22,7 @@ module Gameboy
       if ram_address >= 0 && ram_address < @external_ram.size
         @external_ram[ram_address]
       else
-        0xFF
+        0xFFu8
       end
     end
 
