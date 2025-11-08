@@ -7,6 +7,7 @@ require "./interrupt"
 require "./ppu"
 require "./joypad"
 require "./apu"
+require "./audio_output"
 require "./rom"
 require "./rom_loader"
 require "./display"
@@ -20,6 +21,7 @@ module Gameboy
     @rom : Rom
     @debug : Bool
     @display : Display?
+    @audio_output : AudioOutput?
     @cpu_halted : Bool = false
     @ppu_batch_cycles : Int32 = 0
 
@@ -32,13 +34,14 @@ module Gameboy
       4 => 0x0060,  # Joypad
     }
 
-    def initialize(@rom : Rom, @debug : Bool = false, @display : Display? = nil)
+    def initialize(@rom : Rom, @debug : Bool = false, @display : Display? = nil, @audio_output : AudioOutput? = nil)
     end
 
-    def self.from_file(filename : String, debug : Bool = false, with_display : Bool = true)
+    def self.from_file(filename : String, debug : Bool = false, with_display : Bool = true, with_audio : Bool = true)
       rom = Rom.from_file(filename)
       display = with_display ? Display.new : nil
-      new(rom, debug, display)
+      audio = with_audio ? AudioOutput.new : nil
+      new(rom, debug, display, audio)
     end
 
     def check_interrupts
@@ -203,6 +206,11 @@ module Gameboy
             last_frame_time = Time.monotonic
           end
 
+          # Generate audio for this frame
+          if audio = @audio_output
+            audio.generate_frame_audio
+          end
+
           # FPS counter (every second)
           current_time = Time.monotonic
           elapsed = (current_time - last_fps_time).total_seconds
@@ -240,6 +248,11 @@ module Gameboy
       # Clean up display
       if display = @display
         display.close
+      end
+
+      # Clean up audio
+      if audio = @audio_output
+        audio.close
       end
     end
   end
