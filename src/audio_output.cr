@@ -19,6 +19,18 @@ module Gameboy
     @ch1_volume : Int32 = 0
     @ch1_dac_enabled : Bool = false
     @ch1_last_trigger : Bool = false
+    @ch1_length_enabled : Bool = false
+    @ch1_length_counter : Int32 = 0
+    @ch1_envelope_volume : Int32 = 0
+    @ch1_envelope_pace : Int32 = 0
+    @ch1_envelope_direction : Int32 = 0
+    @ch1_envelope_counter : Int32 = 0
+    @ch1_sweep_pace : Int32 = 0
+    @ch1_sweep_direction : Int32 = 0
+    @ch1_sweep_shift : Int32 = 0
+    @ch1_sweep_counter : Int32 = 0
+    @ch1_sweep_enabled : Bool = false
+    @ch1_freq_shadow : Int32 = 0
 
     @ch2_freq : Float64 = 0.0
     @ch2_phase : Float64 = 0.0
@@ -26,6 +38,16 @@ module Gameboy
     @ch2_volume : Int32 = 0
     @ch2_dac_enabled : Bool = false
     @ch2_last_trigger : Bool = false
+    @ch2_length_enabled : Bool = false
+    @ch2_length_counter : Int32 = 0
+    @ch2_envelope_volume : Int32 = 0
+    @ch2_envelope_pace : Int32 = 0
+    @ch2_envelope_direction : Int32 = 0
+    @ch2_envelope_counter : Int32 = 0
+
+    # Frame sequencer for timing length/envelope/sweep
+    @frame_sequencer_counter : Float64 = 0.0
+    @frame_sequencer_step : Int32 = 0
 
     def initialize
       # Initialize SDL audio
@@ -77,19 +99,28 @@ module Gameboy
       nr52 = APU.read_register(0xFF26)
       master_enabled = (nr52 & 0x80) != 0
 
-      # Debug: Print when APU state changes
-      if nr52 != @last_nr52
-        puts "APU: NR52=0x#{nr52.to_s(16)} master=#{master_enabled}"
-        @last_nr52 = nr52
-      end
-
       return unless master_enabled
+
+      # Update frame sequencer (512 Hz = every 1/512 seconds)
+      # At 59.73 FPS, each frame is about 1/59.73 seconds
+      # 512 / 59.73 ≈ 8.57 sequencer ticks per frame
+      frame_time = 1.0 / Gameboy::TARGET_FPS
+      @frame_sequencer_counter += frame_time
+
+      # Clock frame sequencer at 512 Hz
+      sequencer_period = 1.0 / 512.0
+      while @frame_sequencer_counter >= sequencer_period
+        @frame_sequencer_counter -= sequencer_period
+        clock_frame_sequencer
+        @frame_sequencer_step = (@frame_sequencer_step + 1) % 8
+      end
 
       ch1_enabled = (nr52 & 0x01) != 0
       ch2_enabled = (nr52 & 0x02) != 0
 
       # Read channel 1 registers
       if ch1_enabled
+        nr10 = APU.read_register_internal(0xFF10)
         nr11 = APU.read_register_internal(0xFF11)
         nr12 = APU.read_register_internal(0xFF12)
         nr13 = APU.read_register_internal(0xFF13)
@@ -106,32 +137,40 @@ module Gameboy
         # Duty cycle (bits 6-7 of NR11)
         new_duty = (nr11.to_i32 >> 6) & 0x03
 
-        # Volume envelope (NR12)
-        # Bits 4-7: initial volume
-        # Bit 3: envelope direction (0=decrease, 1=increase)
-        # Bits 0-2: envelope sweep pace
-        initial_volume = (nr12.to_i32 >> 4) & 0x0F
-        envelope_increase = (nr12.to_i32 & 0x08) != 0
-        envelope_pace = nr12.to_i32 & 0x07
-
-        # Simple envelope emulation: if envelope is enabled and volume is 0,
-        # use a reasonable default volume (simplified, not cycle-accurate)
-        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                       8  # Use mid-volume when envelope increase is enabled
-                     else
-                       initial_volume
-                     end
+        # Length enable (bit 6 of NR14)
+        @ch1_length_enabled = (nr14 & 0x40) != 0
 
         @ch1_freq = new_freq
         @ch1_duty = new_duty
-        @ch1_volume = new_volume
 
-        # Check trigger bit (bit 7 of NR14) and reset phase on new notes
+        # Check trigger bit (bit 7 of NR14)
         trigger = (nr14 & 0x80) != 0
         if trigger && !@ch1_last_trigger
-          @ch1_phase = 0.0  # Reset phase on trigger to avoid clicks
+          # Reset phase on trigger
+          @ch1_phase = 0.0
+
+          # Initialize length counter (NR11 bits 0-5)
+          length_data = nr11.to_i32 & 0x3F
+          @ch1_length_counter = 64 - length_data
+
+          # Initialize envelope
+          @ch1_envelope_volume = (nr12.to_i32 >> 4) & 0x0F
+          @ch1_envelope_direction = (nr12.to_i32 & 0x08) != 0 ? 1 : -1
+          @ch1_envelope_pace = nr12.to_i32 & 0x07
+          @ch1_envelope_counter = 0
+
+          # Initialize frequency sweep (NR10)
+          @ch1_sweep_pace = (nr10.to_i32 >> 4) & 0x07
+          @ch1_sweep_direction = (nr10.to_i32 & 0x08) != 0 ? -1 : 1
+          @ch1_sweep_shift = nr10.to_i32 & 0x07
+          @ch1_sweep_counter = 0
+          @ch1_sweep_enabled = (@ch1_sweep_pace > 0 || @ch1_sweep_shift > 0)
+          @ch1_freq_shadow = freq_bits
         end
         @ch1_last_trigger = trigger
+
+        # Use envelope volume instead of initial volume
+        @ch1_volume = @ch1_envelope_volume
       else
         @ch1_dac_enabled = false
         @ch1_volume = 0
@@ -153,27 +192,32 @@ module Gameboy
 
         new_duty = (nr21.to_i32 >> 6) & 0x03
 
-        # Volume envelope (NR22) - same as NR12
-        initial_volume = (nr22.to_i32 >> 4) & 0x0F
-        envelope_increase = (nr22.to_i32 & 0x08) != 0
-        envelope_pace = nr22.to_i32 & 0x07
-
-        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                       8  # Use mid-volume when envelope increase is enabled
-                     else
-                       initial_volume
-                     end
+        # Length enable (bit 6 of NR24)
+        @ch2_length_enabled = (nr24 & 0x40) != 0
 
         @ch2_freq = new_freq
         @ch2_duty = new_duty
-        @ch2_volume = new_volume
 
-        # Check trigger bit (bit 7 of NR24) and reset phase on new notes
+        # Check trigger bit (bit 7 of NR24)
         trigger = (nr24 & 0x80) != 0
         if trigger && !@ch2_last_trigger
-          @ch2_phase = 0.0  # Reset phase on trigger to avoid clicks
+          # Reset phase on trigger
+          @ch2_phase = 0.0
+
+          # Initialize length counter (NR21 bits 0-5)
+          length_data = nr21.to_i32 & 0x3F
+          @ch2_length_counter = 64 - length_data
+
+          # Initialize envelope
+          @ch2_envelope_volume = (nr22.to_i32 >> 4) & 0x0F
+          @ch2_envelope_direction = (nr22.to_i32 & 0x08) != 0 ? 1 : -1
+          @ch2_envelope_pace = nr22.to_i32 & 0x07
+          @ch2_envelope_counter = 0
         end
         @ch2_last_trigger = trigger
+
+        # Use envelope volume instead of initial volume
+        @ch2_volume = @ch2_envelope_volume
       else
         @ch2_dac_enabled = false
         @ch2_volume = 0
@@ -217,6 +261,94 @@ module Gameboy
 
       if queued_size < max_queued
         LibSDL.queue_audio(@audio_device, buffer.to_unsafe.as(Void*), buffer.size.to_u32)
+      end
+    end
+
+    private def clock_frame_sequencer
+      # Frame sequencer runs at 512 Hz with 8 steps
+      # Step 0, 2, 4, 6: Clock length
+      # Step 2, 6: Clock sweep
+      # Step 7: Clock envelope
+
+      case @frame_sequencer_step
+      when 0, 2, 4, 6
+        # Clock length counters
+        clock_length
+      when 7
+        # Clock envelopes
+        clock_envelope
+      end
+
+      if @frame_sequencer_step == 2 || @frame_sequencer_step == 6
+        # Clock sweep
+        clock_sweep
+      end
+    end
+
+    private def clock_length
+      # Channel 1 length
+      if @ch1_length_enabled && @ch1_length_counter > 0
+        @ch1_length_counter -= 1
+        if @ch1_length_counter == 0
+          # Disable channel by clearing NR52 bit
+          @ch1_dac_enabled = false
+          @ch1_volume = 0
+        end
+      end
+
+      # Channel 2 length
+      if @ch2_length_enabled && @ch2_length_counter > 0
+        @ch2_length_counter -= 1
+        if @ch2_length_counter == 0
+          @ch2_dac_enabled = false
+          @ch2_volume = 0
+        end
+      end
+    end
+
+    private def clock_envelope
+      # Channel 1 envelope
+      if @ch1_envelope_pace > 0
+        @ch1_envelope_counter += 1
+        if @ch1_envelope_counter >= @ch1_envelope_pace
+          @ch1_envelope_counter = 0
+          new_volume = @ch1_envelope_volume + @ch1_envelope_direction
+          @ch1_envelope_volume = new_volume.clamp(0, 15)
+        end
+      end
+
+      # Channel 2 envelope
+      if @ch2_envelope_pace > 0
+        @ch2_envelope_counter += 1
+        if @ch2_envelope_counter >= @ch2_envelope_pace
+          @ch2_envelope_counter = 0
+          new_volume = @ch2_envelope_volume + @ch2_envelope_direction
+          @ch2_envelope_volume = new_volume.clamp(0, 15)
+        end
+      end
+    end
+
+    private def clock_sweep
+      # Only channel 1 has sweep
+      return unless @ch1_sweep_enabled && @ch1_sweep_pace > 0
+
+      @ch1_sweep_counter += 1
+      if @ch1_sweep_counter >= @ch1_sweep_pace
+        @ch1_sweep_counter = 0
+
+        # Calculate new frequency
+        delta = @ch1_freq_shadow >> @ch1_sweep_shift
+        new_freq = @ch1_freq_shadow + (@ch1_sweep_direction * delta)
+
+        # Check overflow (frequency must be < 2048)
+        if new_freq >= 0 && new_freq < 2048 && @ch1_sweep_shift > 0
+          @ch1_freq_shadow = new_freq
+          @ch1_freq = 131072.0 / (2048.0 - new_freq.to_f64)
+        elsif new_freq >= 2048
+          # Overflow - disable channel
+          @ch1_dac_enabled = false
+          @ch1_volume = 0
+        end
       end
     end
 
