@@ -10,6 +10,7 @@ module Gameboy
     @audio_device : LibSDL::AudioDeviceID
     @sample_counter : Float64 = 0.0
     @enabled : Bool = true
+    @last_nr52 : UInt8 = 0u8
 
     # Channel state for synthesis
     @ch1_freq : Float64 = 0.0
@@ -72,6 +73,12 @@ module Gameboy
       nr52 = APU.read_register(0xFF26)
       master_enabled = (nr52 & 0x80) != 0
 
+      # Debug: Print when APU state changes
+      if nr52 != @last_nr52
+        puts "APU: NR52=0x#{nr52.to_s(16)} master=#{master_enabled}"
+        @last_nr52 = nr52
+      end
+
       return unless master_enabled
 
       ch1_enabled = (nr52 & 0x01) != 0
@@ -86,14 +93,39 @@ module Gameboy
 
         # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
         freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
-        @ch1_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
 
         # Duty cycle (bits 6-7 of NR11)
-        @ch1_duty = (nr11.to_i32 >> 6) & 0x03
+        new_duty = (nr11.to_i32 >> 6) & 0x03
 
-        # Volume (bits 4-7 of NR12)
-        @ch1_volume = (nr12.to_i32 >> 4) & 0x0F
+        # Volume envelope (NR12)
+        # Bits 4-7: initial volume
+        # Bit 3: envelope direction (0=decrease, 1=increase)
+        # Bits 0-2: envelope sweep pace
+        initial_volume = (nr12.to_i32 >> 4) & 0x0F
+        envelope_increase = (nr12.to_i32 & 0x08) != 0
+        envelope_pace = nr12.to_i32 & 0x07
+
+        # Simple envelope emulation: if envelope is enabled and volume is 0,
+        # use a reasonable default volume (simplified, not cycle-accurate)
+        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                       8  # Use mid-volume when envelope increase is enabled
+                     else
+                       initial_volume
+                     end
+
+        # Debug: Print when channel 1 parameters change
+        if new_freq != @ch1_freq || new_volume != @ch1_volume || new_duty != @ch1_duty
+          puts "CH1: freq=#{new_freq.round(1)}Hz vol=#{new_volume} (init=#{initial_volume} env_inc=#{envelope_increase}) duty=#{new_duty}"
+        end
+
+        @ch1_freq = new_freq
+        @ch1_duty = new_duty
+        @ch1_volume = new_volume
       else
+        if @ch1_volume != 0
+          puts "CH1: disabled"
+        end
         @ch1_volume = 0
       end
 
@@ -105,11 +137,33 @@ module Gameboy
         nr24 = APU.read_register(0xFF19)
 
         freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
-        @ch2_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
 
-        @ch2_duty = (nr21.to_i32 >> 6) & 0x03
-        @ch2_volume = (nr22.to_i32 >> 4) & 0x0F
+        new_duty = (nr21.to_i32 >> 6) & 0x03
+
+        # Volume envelope (NR22) - same as NR12
+        initial_volume = (nr22.to_i32 >> 4) & 0x0F
+        envelope_increase = (nr22.to_i32 & 0x08) != 0
+        envelope_pace = nr22.to_i32 & 0x07
+
+        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                       8  # Use mid-volume when envelope increase is enabled
+                     else
+                       initial_volume
+                     end
+
+        # Debug: Print when channel 2 parameters change
+        if new_freq != @ch2_freq || new_volume != @ch2_volume || new_duty != @ch2_duty
+          puts "CH2: freq=#{new_freq.round(1)}Hz vol=#{new_volume} (init=#{initial_volume} env_inc=#{envelope_increase}) duty=#{new_duty}"
+        end
+
+        @ch2_freq = new_freq
+        @ch2_duty = new_duty
+        @ch2_volume = new_volume
       else
+        if @ch2_volume != 0
+          puts "CH2: disabled"
+        end
         @ch2_volume = 0
       end
 
@@ -167,8 +221,9 @@ module Gameboy
       # Generate square wave
       wave_value = phase < duty_threshold ? 1 : -1
 
-      # Scale by volume (0-15 maps to 0-2048 amplitude)
-      (wave_value * volume * 136).to_i32
+      # Scale by volume (0-15 maps to full amplitude range)
+      # Using ~1500 per volume level gives good loudness without clipping when mixed
+      (wave_value * volume * 1500).to_i32
     end
   end
 end

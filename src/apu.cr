@@ -116,6 +116,11 @@ module Gameboy
     end
 
     def write_register(address : Int32, value : UInt8)
+      # Debug: Print all APU register writes
+      if address >= 0xFF10 && address <= 0xFF26
+        puts "APU Write: 0x#{address.to_s(16)} = 0x#{value.to_s(16)}"
+      end
+
       # If APU is disabled (NR52 bit 7 = 0), all registers are read-only except NR52
       if address != 0xFF26 && (@@nr52 & 0x80) == 0
         return
