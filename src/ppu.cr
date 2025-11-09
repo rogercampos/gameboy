@@ -244,12 +244,6 @@ module Gameboy
       ly = current_line
       return if ly >= SCREEN_HEIGHT
 
-      # Debug: Log LCDC and sprite enable status once per frame
-      if ly == 0 && @@render_count % 60 == 0
-        lcdc = MMU.data[LCDC].to_i32
-        puts "LCDC=0x#{lcdc.to_s(16)}, sprites_enabled=#{sprites_enabled?}, bg_enabled=#{bg_enabled?}"
-      end
-
       # Clear scanline
       SCREEN_WIDTH.times { |x| @@framebuffer[ly][x] = 0 }
 
@@ -368,31 +362,8 @@ module Gameboy
       mmu_data = MMU.data
       sprite_height = (mmu_data[LCDC] & 0x04) != 0 ? 16 : 8
 
-      #Debug: Log first time sprites are rendered
-      if @@sprite_debug_count < 2 && ly == 0
-        obp0 = mmu_data[OBP0].to_i32
-        obp1 = mmu_data[OBP1].to_i32
-        puts "render_sprites called! Palettes: OBP0=0x#{obp0.to_s(16)}, OBP1=0x#{obp1.to_s(16)}"
-
-        # Debug: Log first 5 sprites in OAM
-        puts "  First 5 OAM entries:"
-        5.times do |i|
-          oam_addr = 0xFE00 + i * 4
-          y = mmu_data[oam_addr].to_i32
-          x = mmu_data[oam_addr + 1].to_i32
-          tile = mmu_data[oam_addr + 2].to_i32
-          attrs = mmu_data[oam_addr + 3].to_i32
-          sprite_y = y - 16
-          sprite_x = x - 8
-          puts "    [#{i}] Y=#{y} (sprite_y=#{sprite_y}), X=#{x} (sprite_x=#{sprite_x}), tile=#{tile}, attrs=0x#{attrs.to_s(16)}"
-        end
-
-        @@sprite_debug_count += 1
-      end
-
       # Scan OAM for sprites on this scanline
       sprites = [] of Sprite
-      sprite_count = 0
       40.times do |i|
         oam_addr = 0xFE00 + i * 4
         sprite_y = mmu_data[oam_addr].to_i32 - 16
@@ -403,18 +374,7 @@ module Gameboy
         # Check if sprite is on this scanline
         if ly >= sprite_y && ly < sprite_y + sprite_height
           sprites << Sprite.new(sprite_x, sprite_y, tile_num, attributes, i)
-          sprite_count += 1
-
-          # Debug: Log first few sprites found
-          if @@sprite_debug_count < 5
-            puts "  Sprite #{i}: x=#{sprite_x}, y=#{sprite_y}, tile=#{tile_num}, ly=#{ly}"
-          end
         end
-      end
-
-      # Debug: Log sprite count for first few frames
-      if @@sprite_debug_count < 5 && sprite_count > 0
-        puts "  Total: #{sprite_count} sprites on scanline #{ly}"
       end
 
       # Sort by X position (right-most sprites have priority)
