@@ -79,17 +79,18 @@ module Gameboy
       @@channel4_enabled = false
     end
 
+    # Read register - for external (CPU) reads, some registers return 0xFF
     def read_register(address : Int32) : UInt8
       case address
       when 0xFF10 then @@nr10
       when 0xFF11 then @@nr11 | 0x3F  # Lower 6 bits are write-only
       when 0xFF12 then @@nr12
-      when 0xFF13 then 0xFFu8        # Write-only
+      when 0xFF13 then 0xFFu8        # Write-only (CPU reads get 0xFF)
       when 0xFF14 then @@nr14 | 0xBF  # Bit 6 is write-only
 
       when 0xFF16 then @@nr21 | 0x3F  # Lower 6 bits are write-only
       when 0xFF17 then @@nr22
-      when 0xFF18 then 0xFFu8        # Write-only
+      when 0xFF18 then 0xFFu8        # Write-only (CPU reads get 0xFF)
       when 0xFF19 then @@nr24 | 0xBF  # Bit 6 is write-only
 
       when 0xFF1A then @@nr30
@@ -115,12 +116,44 @@ module Gameboy
       end
     end
 
-    def write_register(address : Int32, value : UInt8)
-      # Debug: Print all APU register writes
-      if address >= 0xFF10 && address <= 0xFF26
-        puts "APU Write: 0x#{address.to_s(16)} = 0x#{value.to_s(16)}"
-      end
+    # Internal read - returns actual register values (for audio synthesis)
+    def read_register_internal(address : Int32) : UInt8
+      case address
+      when 0xFF10 then @@nr10
+      when 0xFF11 then @@nr11
+      when 0xFF12 then @@nr12
+      when 0xFF13 then @@nr13  # Return actual value
+      when 0xFF14 then @@nr14
 
+      when 0xFF16 then @@nr21
+      when 0xFF17 then @@nr22
+      when 0xFF18 then @@nr23  # Return actual value
+      when 0xFF19 then @@nr24
+
+      when 0xFF1A then @@nr30
+      when 0xFF1B then @@nr31
+      when 0xFF1C then @@nr32
+      when 0xFF1D then @@nr33  # Return actual value
+      when 0xFF1E then @@nr34
+
+      when 0xFF20 then @@nr41
+      when 0xFF21 then @@nr42
+      when 0xFF22 then @@nr43
+      when 0xFF23 then @@nr44
+
+      when 0xFF24 then @@nr50
+      when 0xFF25 then @@nr51
+      when 0xFF26 then @@nr52
+
+      when 0xFF30..0xFF3F
+        @@wave_ram[address - 0xFF30]
+
+      else
+        0xFFu8
+      end
+    end
+
+    def write_register(address : Int32, value : UInt8)
       # If APU is disabled (NR52 bit 7 = 0), all registers are read-only except NR52
       if address != 0xFF26 && (@@nr52 & 0x80) == 0
         return

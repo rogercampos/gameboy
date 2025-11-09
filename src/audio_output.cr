@@ -86,10 +86,10 @@ module Gameboy
 
       # Read channel 1 registers
       if ch1_enabled
-        nr11 = APU.read_register(0xFF11)
-        nr12 = APU.read_register(0xFF12)
-        nr13 = APU.read_register(0xFF13)
-        nr14 = APU.read_register(0xFF14)
+        nr11 = APU.read_register_internal(0xFF11)
+        nr12 = APU.read_register_internal(0xFF12)
+        nr13 = APU.read_register_internal(0xFF13)
+        nr14 = APU.read_register_internal(0xFF14)
 
         # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
         freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
@@ -114,27 +114,19 @@ module Gameboy
                        initial_volume
                      end
 
-        # Debug: Print when channel 1 parameters change
-        if new_freq != @ch1_freq || new_volume != @ch1_volume || new_duty != @ch1_duty
-          puts "CH1: freq=#{new_freq.round(1)}Hz vol=#{new_volume} (init=#{initial_volume} env_inc=#{envelope_increase}) duty=#{new_duty}"
-        end
-
         @ch1_freq = new_freq
         @ch1_duty = new_duty
         @ch1_volume = new_volume
       else
-        if @ch1_volume != 0
-          puts "CH1: disabled"
-        end
         @ch1_volume = 0
       end
 
       # Read channel 2 registers
       if ch2_enabled
-        nr21 = APU.read_register(0xFF16)
-        nr22 = APU.read_register(0xFF17)
-        nr23 = APU.read_register(0xFF18)
-        nr24 = APU.read_register(0xFF19)
+        nr21 = APU.read_register_internal(0xFF16)
+        nr22 = APU.read_register_internal(0xFF17)
+        nr23 = APU.read_register_internal(0xFF18)
+        nr24 = APU.read_register_internal(0xFF19)
 
         freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
         new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
@@ -152,18 +144,10 @@ module Gameboy
                        initial_volume
                      end
 
-        # Debug: Print when channel 2 parameters change
-        if new_freq != @ch2_freq || new_volume != @ch2_volume || new_duty != @ch2_duty
-          puts "CH2: freq=#{new_freq.round(1)}Hz vol=#{new_volume} (init=#{initial_volume} env_inc=#{envelope_increase}) duty=#{new_duty}"
-        end
-
         @ch2_freq = new_freq
         @ch2_duty = new_duty
         @ch2_volume = new_volume
       else
-        if @ch2_volume != 0
-          puts "CH2: disabled"
-        end
         @ch2_volume = 0
       end
 
