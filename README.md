@@ -31,11 +31,13 @@ This emulator implements the core Game Boy components:
 - **Memory Management Unit (MMU)**: Complete memory mapping with cartridge support
 - **Memory Bank Controllers**: MBC1, MBC3, and MBC5 implementations for broader ROM compatibility
 - **Picture Processing Unit (PPU)**: Background and sprite rendering with accurate timing
-- **Audio Processing Unit (APU)**: All 4 sound channels with register handling and audio synthesis
-  - Channel 1: Square wave with sweep and envelope (implemented)
-  - Channel 2: Square wave with envelope (implemented)
-  - Channel 3: Wave pattern RAM (register handling only)
-  - Channel 4: Noise generator (register handling only)
+- **Audio Processing Unit (APU)**: Accurate sound synthesis with proper timing
+  - Channel 1: Square wave with frequency sweep, volume envelope, and length counter (fully implemented)
+  - Channel 2: Square wave with volume envelope and length counter (fully implemented)
+  - Channel 3: Wave pattern RAM (register handling only, synthesis pending)
+  - Channel 4: Noise generator (register handling only, synthesis pending)
+  - Frame sequencer running at 512 Hz for accurate timing (length/envelope/sweep)
+  - DAC enable/disable handling for clean audio output
   - SDL audio output at 48kHz with proper mixing
 - **Timer**: Divider and timer registers with interrupts
 - **Joypad**: Input handling
@@ -47,8 +49,6 @@ This emulator implements the core Game Boy components:
 ## Known Limitations
 
 - **Audio**: Only channels 1 and 2 (square waves) produce sound. Channels 3 (wave) and 4 (noise) need synthesis implementation
-- **Audio**: Missing sweep functionality for channel 1
-- **Audio**: Missing length counter and envelope decay (sounds play continuously)
 - **Save states**: No save state support
 - **Battery RAM**: No battery-backed RAM persistence (games with saves won't persist between sessions)
 - **GameBoy Color**: No Game Boy Color support
@@ -62,8 +62,8 @@ This emulator implements the core Game Boy components:
 3. ✅ **Memory Bank Controllers** - Completed (MBC1, MBC3, MBC5 implemented)
 4. ✅ **APU register handling** - Completed (all channels and registers implemented)
 5. ✅ **Basic audio synthesis** - Completed (channels 1 & 2 working with SDL audio output)
-6. **Complete audio synthesis**: Implement channels 3 (wave) and 4 (noise)
-7. **Audio enhancements**: Add sweep, length counters, and envelope decay
+6. ✅ **Audio enhancements** - Completed (frequency sweep, length counters, volume envelopes, DAC control)
+7. **Complete audio synthesis**: Implement channels 3 (wave) and 4 (noise)
 8. **Test with more ROMs**: Validate with games beyond Tetris (Super Mario Land, Pokemon, Zelda, etc.)
 9. **Battery-backed RAM**: Implement save file persistence for MBC1/MBC3/MBC5
 10. **RTC implementation**: Add real-time clock ticking for MBC3 games
@@ -122,8 +122,9 @@ crystal build src/main.cr -o gameboy --release
 
 **Testing audio specifically:**
 - Tetris uses channels 1 and 2 extensively for music and sound effects
-- You should hear the iconic Tetris theme playing
+- You should hear the iconic Tetris theme playing with accurate note lengths and volume fading
 - Sound effects should play when moving/rotating pieces and clearing lines
+- Audio features working: frequency sweep (pitch bending), volume envelopes (fade in/out), and length counters (note duration)
 - If you only see graphics without sound, check that SDL2 audio is working on your system
 
 ## Resources
