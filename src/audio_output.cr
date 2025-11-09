@@ -99,40 +99,38 @@ module Gameboy
         dac_enabled = (nr12 & 0xF8) != 0
         @ch1_dac_enabled = dac_enabled
 
-        # Check trigger bit (bit 7 of NR14)
+        # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
+        freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
+        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+
+        # Duty cycle (bits 6-7 of NR11)
+        new_duty = (nr11.to_i32 >> 6) & 0x03
+
+        # Volume envelope (NR12)
+        # Bits 4-7: initial volume
+        # Bit 3: envelope direction (0=decrease, 1=increase)
+        # Bits 0-2: envelope sweep pace
+        initial_volume = (nr12.to_i32 >> 4) & 0x0F
+        envelope_increase = (nr12.to_i32 & 0x08) != 0
+        envelope_pace = nr12.to_i32 & 0x07
+
+        # Simple envelope emulation: if envelope is enabled and volume is 0,
+        # use a reasonable default volume (simplified, not cycle-accurate)
+        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                       8  # Use mid-volume when envelope increase is enabled
+                     else
+                       initial_volume
+                     end
+
+        @ch1_freq = new_freq
+        @ch1_duty = new_duty
+        @ch1_volume = new_volume
+
+        # Check trigger bit (bit 7 of NR14) and reset phase on new notes
         trigger = (nr14 & 0x80) != 0
-
-        # Only update parameters on trigger to avoid clicks from mid-note changes
         if trigger && !@ch1_last_trigger
-          # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
-          freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
-          new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
-
-          # Duty cycle (bits 6-7 of NR11)
-          new_duty = (nr11.to_i32 >> 6) & 0x03
-
-          # Volume envelope (NR12)
-          # Bits 4-7: initial volume
-          # Bit 3: envelope direction (0=decrease, 1=increase)
-          # Bits 0-2: envelope sweep pace
-          initial_volume = (nr12.to_i32 >> 4) & 0x0F
-          envelope_increase = (nr12.to_i32 & 0x08) != 0
-          envelope_pace = nr12.to_i32 & 0x07
-
-          # Simple envelope emulation: if envelope is enabled and volume is 0,
-          # use a reasonable default volume (simplified, not cycle-accurate)
-          new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                         8  # Use mid-volume when envelope increase is enabled
-                       else
-                         initial_volume
-                       end
-
-          @ch1_freq = new_freq
-          @ch1_duty = new_duty
-          @ch1_volume = new_volume
           @ch1_phase = 0.0  # Reset phase on trigger to avoid clicks
         end
-
         @ch1_last_trigger = trigger
       else
         @ch1_dac_enabled = false
@@ -150,33 +148,31 @@ module Gameboy
         dac_enabled = (nr22 & 0xF8) != 0
         @ch2_dac_enabled = dac_enabled
 
-        # Check trigger bit (bit 7 of NR24)
+        freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
+        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+
+        new_duty = (nr21.to_i32 >> 6) & 0x03
+
+        # Volume envelope (NR22) - same as NR12
+        initial_volume = (nr22.to_i32 >> 4) & 0x0F
+        envelope_increase = (nr22.to_i32 & 0x08) != 0
+        envelope_pace = nr22.to_i32 & 0x07
+
+        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                       8  # Use mid-volume when envelope increase is enabled
+                     else
+                       initial_volume
+                     end
+
+        @ch2_freq = new_freq
+        @ch2_duty = new_duty
+        @ch2_volume = new_volume
+
+        # Check trigger bit (bit 7 of NR24) and reset phase on new notes
         trigger = (nr24 & 0x80) != 0
-
-        # Only update parameters on trigger to avoid clicks from mid-note changes
         if trigger && !@ch2_last_trigger
-          freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
-          new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
-
-          new_duty = (nr21.to_i32 >> 6) & 0x03
-
-          # Volume envelope (NR22) - same as NR12
-          initial_volume = (nr22.to_i32 >> 4) & 0x0F
-          envelope_increase = (nr22.to_i32 & 0x08) != 0
-          envelope_pace = nr22.to_i32 & 0x07
-
-          new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                         8  # Use mid-volume when envelope increase is enabled
-                       else
-                         initial_volume
-                       end
-
-          @ch2_freq = new_freq
-          @ch2_duty = new_duty
-          @ch2_volume = new_volume
           @ch2_phase = 0.0  # Reset phase on trigger to avoid clicks
         end
-
         @ch2_last_trigger = trigger
       else
         @ch2_dac_enabled = false
