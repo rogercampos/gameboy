@@ -17,11 +17,15 @@ module Gameboy
     @ch1_phase : Float64 = 0.0
     @ch1_duty : Int32 = 0
     @ch1_volume : Int32 = 0
+    @ch1_dac_enabled : Bool = false
+    @ch1_last_trigger : Bool = false
 
     @ch2_freq : Float64 = 0.0
     @ch2_phase : Float64 = 0.0
     @ch2_duty : Int32 = 0
     @ch2_volume : Int32 = 0
+    @ch2_dac_enabled : Bool = false
+    @ch2_last_trigger : Bool = false
 
     def initialize
       # Initialize SDL audio
@@ -91,33 +95,47 @@ module Gameboy
         nr13 = APU.read_register_internal(0xFF13)
         nr14 = APU.read_register_internal(0xFF14)
 
-        # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
-        freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
-        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+        # Check if DAC is enabled (NR12 bits 3-7 must not be all zero)
+        dac_enabled = (nr12 & 0xF8) != 0
+        @ch1_dac_enabled = dac_enabled
 
-        # Duty cycle (bits 6-7 of NR11)
-        new_duty = (nr11.to_i32 >> 6) & 0x03
+        # Check trigger bit (bit 7 of NR14)
+        trigger = (nr14 & 0x80) != 0
 
-        # Volume envelope (NR12)
-        # Bits 4-7: initial volume
-        # Bit 3: envelope direction (0=decrease, 1=increase)
-        # Bits 0-2: envelope sweep pace
-        initial_volume = (nr12.to_i32 >> 4) & 0x0F
-        envelope_increase = (nr12.to_i32 & 0x08) != 0
-        envelope_pace = nr12.to_i32 & 0x07
+        # Only update parameters on trigger to avoid clicks from mid-note changes
+        if trigger && !@ch1_last_trigger
+          # Calculate frequency: f = 131072/(2048-x) Hz where x is 11-bit frequency value
+          freq_bits = ((nr14.to_i32 & 0x07) << 8) | nr13.to_i32
+          new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
 
-        # Simple envelope emulation: if envelope is enabled and volume is 0,
-        # use a reasonable default volume (simplified, not cycle-accurate)
-        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                       8  # Use mid-volume when envelope increase is enabled
-                     else
-                       initial_volume
-                     end
+          # Duty cycle (bits 6-7 of NR11)
+          new_duty = (nr11.to_i32 >> 6) & 0x03
 
-        @ch1_freq = new_freq
-        @ch1_duty = new_duty
-        @ch1_volume = new_volume
+          # Volume envelope (NR12)
+          # Bits 4-7: initial volume
+          # Bit 3: envelope direction (0=decrease, 1=increase)
+          # Bits 0-2: envelope sweep pace
+          initial_volume = (nr12.to_i32 >> 4) & 0x0F
+          envelope_increase = (nr12.to_i32 & 0x08) != 0
+          envelope_pace = nr12.to_i32 & 0x07
+
+          # Simple envelope emulation: if envelope is enabled and volume is 0,
+          # use a reasonable default volume (simplified, not cycle-accurate)
+          new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                         8  # Use mid-volume when envelope increase is enabled
+                       else
+                         initial_volume
+                       end
+
+          @ch1_freq = new_freq
+          @ch1_duty = new_duty
+          @ch1_volume = new_volume
+          @ch1_phase = 0.0  # Reset phase on trigger to avoid clicks
+        end
+
+        @ch1_last_trigger = trigger
       else
+        @ch1_dac_enabled = false
         @ch1_volume = 0
       end
 
@@ -128,26 +146,40 @@ module Gameboy
         nr23 = APU.read_register_internal(0xFF18)
         nr24 = APU.read_register_internal(0xFF19)
 
-        freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
-        new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
+        # Check if DAC is enabled (NR22 bits 3-7 must not be all zero)
+        dac_enabled = (nr22 & 0xF8) != 0
+        @ch2_dac_enabled = dac_enabled
 
-        new_duty = (nr21.to_i32 >> 6) & 0x03
+        # Check trigger bit (bit 7 of NR24)
+        trigger = (nr24 & 0x80) != 0
 
-        # Volume envelope (NR22) - same as NR12
-        initial_volume = (nr22.to_i32 >> 4) & 0x0F
-        envelope_increase = (nr22.to_i32 & 0x08) != 0
-        envelope_pace = nr22.to_i32 & 0x07
+        # Only update parameters on trigger to avoid clicks from mid-note changes
+        if trigger && !@ch2_last_trigger
+          freq_bits = ((nr24.to_i32 & 0x07) << 8) | nr23.to_i32
+          new_freq = 131072.0 / (2048.0 - freq_bits.to_f64)
 
-        new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
-                       8  # Use mid-volume when envelope increase is enabled
-                     else
-                       initial_volume
-                     end
+          new_duty = (nr21.to_i32 >> 6) & 0x03
 
-        @ch2_freq = new_freq
-        @ch2_duty = new_duty
-        @ch2_volume = new_volume
+          # Volume envelope (NR22) - same as NR12
+          initial_volume = (nr22.to_i32 >> 4) & 0x0F
+          envelope_increase = (nr22.to_i32 & 0x08) != 0
+          envelope_pace = nr22.to_i32 & 0x07
+
+          new_volume = if initial_volume == 0 && envelope_increase && envelope_pace > 0
+                         8  # Use mid-volume when envelope increase is enabled
+                       else
+                         initial_volume
+                       end
+
+          @ch2_freq = new_freq
+          @ch2_duty = new_duty
+          @ch2_volume = new_volume
+          @ch2_phase = 0.0  # Reset phase on trigger to avoid clicks
+        end
+
+        @ch2_last_trigger = trigger
       else
+        @ch2_dac_enabled = false
         @ch2_volume = 0
       end
 
@@ -159,15 +191,15 @@ module Gameboy
         # Mix channels
         sample = 0_i32
 
-        # Channel 1 - Square wave
-        if @ch1_volume > 0
+        # Channel 1 - Square wave (only if DAC is enabled)
+        if @ch1_dac_enabled && @ch1_volume > 0
           sample += generate_square_sample(@ch1_phase, @ch1_duty, @ch1_volume)
           @ch1_phase += @ch1_freq / SAMPLE_RATE
           @ch1_phase -= @ch1_phase.floor
         end
 
-        # Channel 2 - Square wave
-        if @ch2_volume > 0
+        # Channel 2 - Square wave (only if DAC is enabled)
+        if @ch2_dac_enabled && @ch2_volume > 0
           sample += generate_square_sample(@ch2_phase, @ch2_duty, @ch2_volume)
           @ch2_phase += @ch2_freq / SAMPLE_RATE
           @ch2_phase -= @ch2_phase.floor
