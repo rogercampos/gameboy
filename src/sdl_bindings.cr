@@ -1,7 +1,10 @@
 @[Link("SDL2")]
 lib LibSDL
   INIT_VIDEO = 0x00000020_u32
+  INIT_AUDIO = 0x00000010_u32
   WINDOWPOS_CENTERED = 0x2FFF0000_u32
+
+  AUDIO_S16LSB = 0x8010_u16  # Signed 16-bit samples, little-endian
 
   # Event types
   QUIT = 0x100_u32
@@ -55,6 +58,21 @@ lib LibSDL
 
   type Window = Void*
   type Renderer = Void*
+  type AudioDeviceID = UInt32
+
+  alias AudioCallback = (Void*, UInt8*, Int32) ->
+
+  struct AudioSpec
+    freq : Int32
+    format : UInt16
+    channels : UInt8
+    silence : UInt8
+    samples : UInt16
+    padding : UInt16
+    size : UInt32
+    callback : AudioCallback
+    userdata : Void*
+  end
 
   fun init = SDL_Init(flags : UInt32) : Int32
   fun quit = SDL_Quit
@@ -86,4 +104,17 @@ lib LibSDL
   fun poll_event = SDL_PollEvent(event : UInt8*) : Int32
   fun delay = SDL_Delay(ms : UInt32)
   fun get_ticks = SDL_GetTicks : UInt32
+
+  # Audio functions
+  fun open_audio_device = SDL_OpenAudioDevice(
+    device : UInt8*,
+    iscapture : Int32,
+    desired : AudioSpec*,
+    obtained : AudioSpec*,
+    allowed_changes : Int32
+  ) : AudioDeviceID
+  fun close_audio_device = SDL_CloseAudioDevice(dev : AudioDeviceID)
+  fun pause_audio_device = SDL_PauseAudioDevice(dev : AudioDeviceID, pause_on : Int32)
+  fun queue_audio = SDL_QueueAudio(dev : AudioDeviceID, data : Void*, len : UInt32) : Int32
+  fun get_queued_audio_size = SDL_GetQueuedAudioSize(dev : AudioDeviceID) : UInt32
 end

@@ -1,4 +1,6 @@
 require "./twos_complement"
+require "./cartridge"
+require "./apu"
 
 module Gameboy
   module MMU
@@ -7,6 +9,16 @@ module Gameboy
     MMU_SIZE = 65536
 
     @@data = Bytes.new(MMU_SIZE, 0u8)
+    @@cartridge : Cartridge? = nil
+
+    # Set the cartridge for ROM/RAM access
+    def cartridge=(cart : Cartridge)
+      @@cartridge = cart
+    end
+
+    def cartridge : Cartridge?
+      @@cartridge
+    end
 
     # Direct array access for performance
     def data : Bytes
@@ -17,6 +29,30 @@ module Gameboy
     def bread(address : Int32, signed : Bool = false) : Int32
       # Inline echo handling for performance
       addr = address >= 0xe000 && address < 0xfe00 ? address - 0x2000 : address
+
+      # Route ROM reads through cartridge (0x0000-0x7FFF)
+      if addr >= 0x0000 && addr <= 0x7FFF
+        if cart = @@cartridge
+          value = cart.read_rom(addr).to_i32
+          return signed ? TwosComplement.convert(value, 8) : value
+        else
+          # Fallback to direct memory access if no cartridge loaded
+          value = @@data[addr].to_i32
+          return signed ? TwosComplement.convert(value, 8) : value
+        end
+      end
+
+      # Route external RAM reads through cartridge (0xA000-0xBFFF)
+      if addr >= 0xA000 && addr <= 0xBFFF
+        if cart = @@cartridge
+          value = cart.read_ram(addr).to_i32
+          return signed ? TwosComplement.convert(value, 8) : value
+        else
+          # Fallback to direct memory access
+          value = @@data[addr].to_i32
+          return signed ? TwosComplement.convert(value, 8) : value
+        end
+      end
 
       # CRITICAL: Block VRAM reads when LCD is on and PPU mode is 3 (VRAM access)
       if addr >= 0x8000 && addr <= 0x9FFF
@@ -34,6 +70,12 @@ module Gameboy
         end
       end
 
+      # Route APU register reads through APU module (0xFF10-0xFF3F)
+      if addr >= 0xFF10 && addr <= 0xFF3F
+        value = APU.read_register(addr).to_i32
+        return signed ? TwosComplement.convert(value, 8) : value
+      end
+
       value = @@data[addr].to_i32
 
       if signed
@@ -48,9 +90,29 @@ module Gameboy
       # Inline echo handling for performance
       addr = address >= 0xe000 && address < 0xfe00 ? address - 0x2000 : address
 
-      # ROM region (0x0000-0x7FFF) is read-only
-      # Block writes to ROM (except during initial loading via direct MMU.data access)
+      # Route ROM writes through cartridge (0x0000-0x7FFF)
+      # These are actually MBC control register writes, not actual ROM writes
       if addr >= 0x0000 && addr <= 0x7FFF
+        if cart = @@cartridge
+          cart.write_rom(addr, value.to_u8)
+        end
+        return
+      end
+
+      # Route external RAM writes through cartridge (0xA000-0xBFFF)
+      if addr >= 0xA000 && addr <= 0xBFFF
+        if cart = @@cartridge
+          cart.write_ram(addr, value.to_u8)
+        else
+          # Fallback to direct memory access
+          @@data[addr] = (value & 0xFF).to_u8
+        end
+        return
+      end
+
+      # Route APU register writes through APU module (0xFF10-0xFF3F)
+      if addr >= 0xFF10 && addr <= 0xFF3F
+        APU.write_register(addr, value.to_u8)
         return
       end
 
@@ -151,6 +213,9 @@ module Gameboy
 
     def reset!
       @@data = Bytes.new(MMU_SIZE, 0u8)
+      if cart = @@cartridge
+        cart.reset!
+      end
     end
   end
 end

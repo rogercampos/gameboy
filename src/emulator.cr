@@ -6,6 +6,8 @@ require "./timer"
 require "./interrupt"
 require "./ppu"
 require "./joypad"
+require "./apu"
+require "./audio_output"
 require "./rom"
 require "./rom_loader"
 require "./display"
@@ -19,6 +21,7 @@ module Gameboy
     @rom : Rom
     @debug : Bool
     @display : Display?
+    @audio_output : AudioOutput?
     @cpu_halted : Bool = false
     @ppu_batch_cycles : Int32 = 0
 
@@ -31,13 +34,14 @@ module Gameboy
       4 => 0x0060,  # Joypad
     }
 
-    def initialize(@rom : Rom, @debug : Bool = false, @display : Display? = nil)
+    def initialize(@rom : Rom, @debug : Bool = false, @display : Display? = nil, @audio_output : AudioOutput? = nil)
     end
 
-    def self.from_file(filename : String, debug : Bool = false, with_display : Bool = true)
+    def self.from_file(filename : String, debug : Bool = false, with_display : Bool = true, with_audio : Bool = true)
       rom = Rom.from_file(filename)
       display = with_display ? Display.new : nil
-      new(rom, debug, display)
+      audio = with_audio ? AudioOutput.new : nil
+      new(rom, debug, display, audio)
     end
 
     def check_interrupts
@@ -95,6 +99,7 @@ module Gameboy
       Timer.reset!
       Joypad.reset!
       PPU.reset!
+      APU.reset!
       IME.reset!
 
       puts "\nStarting emulation..."
@@ -105,6 +110,8 @@ module Gameboy
       frame_cycles = 0
       frame_count = 0_i64
       last_fps_time = Time.monotonic
+      frame_time_target = Time::Span.new(nanoseconds: (1_000_000_000 / TARGET_FPS).to_i64)
+      last_frame_time = Time.monotonic
 
       # Main emulation loop
       running = true
@@ -187,8 +194,21 @@ module Gameboy
             # Check if window was closed
             running = false unless display.running?
 
-            # Frame timing - limit to ~60 FPS
-            # TODO: More precise timing
+            # Frame timing - limit to 59.73 FPS
+            current_frame_time = Time.monotonic
+            frame_duration = current_frame_time - last_frame_time
+            sleep_time = frame_time_target - frame_duration
+
+            if sleep_time > Time::Span.zero
+              sleep(sleep_time)
+            end
+
+            last_frame_time = Time.monotonic
+          end
+
+          # Generate audio for this frame
+          if audio = @audio_output
+            audio.generate_frame_audio
           end
 
           # FPS counter (every second)
@@ -228,6 +248,11 @@ module Gameboy
       # Clean up display
       if display = @display
         display.close
+      end
+
+      # Clean up audio
+      if audio = @audio_output
+        audio.close
       end
     end
   end
